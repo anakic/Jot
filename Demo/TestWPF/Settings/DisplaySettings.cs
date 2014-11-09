@@ -1,0 +1,36 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.ComponentModel;
+using System.Windows.Media;
+
+namespace TestWPF.Settings
+{
+    [Serializable]
+    public class DisplaySettings : INotifyPropertyChanged
+    {
+        private FontFamily _font;
+        public FontFamily Font
+        {
+            get { return _font; }
+            set { _font = value; OnPropertyChanged("Font"); }
+        }
+
+        private decimal _fontSize = 15;
+        public decimal FontSize
+        {
+            get { return _fontSize; }
+            set { _fontSize = value; OnPropertyChanged("FontSize"); }
+        }
+
+        [field: NonSerialized]
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
