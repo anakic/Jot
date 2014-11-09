@@ -27,11 +27,11 @@ namespace Thingie.Tracking.Serialization
             if (obj is Int64)
             {
                 Int64 value = (Int64)obj;
-                if (value >= 0 && value < byte.MaxValue)
+                if (value >= 0 && value <= byte.MaxValue)
                     obj = Convert.ToByte(obj);
-                else if (Math.Abs(value) < Int16.MaxValue)
+                else if (Math.Abs(value) <= Int16.MaxValue)
                     obj = Convert.ToInt16(obj);
-                else if (Math.Abs(value) < Int32.MaxValue)
+                else if (Math.Abs(value) <= Int32.MaxValue)
                     obj = Convert.ToInt32(obj);
             }
 
