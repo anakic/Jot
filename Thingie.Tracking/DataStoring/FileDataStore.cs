@@ -33,11 +33,21 @@ namespace Thingie.Tracking.DataStoring
         {
             FilePath = filePath;
 
+            bool loaded = false;
             if (File.Exists(FilePath))
             {
-                _document = XDocument.Load(FilePath);
+                try
+                {
+                    _document = XDocument.Load(FilePath);
+                    loaded = true;
+                }
+                catch 
+                {
+                    File.Delete(filePath);
+                }
             }
-            else
+            
+            if(!loaded)
             {
                 string directory = Path.GetDirectoryName(filePath);
                 if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
