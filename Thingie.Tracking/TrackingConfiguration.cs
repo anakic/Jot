@@ -75,6 +75,7 @@ namespace Thingie.Tracking
 
         public string Key { get; set; }
         public HashSet<string> Properties { get; set; }
+        public Dictionary<string, object> Defaults { get; set; }//todo: add DevaultValue property to trackable attribute
         public WeakReference TargetReference { get; private set; }
         public PersistModes Mode { get; set; }
 
@@ -124,6 +125,7 @@ namespace Thingie.Tracking
             _tracker = tracker;
             this.TargetReference = new WeakReference(target);
             Properties = new HashSet<string>();
+            Defaults = new Dictionary<string, object>();
             AddMetaData();
 
             ITrackingAware trackingAwareTarget = target as ITrackingAware;
@@ -178,6 +180,10 @@ namespace Thingie.Tracking
                         {
                             object storedValue = _tracker.ObjectStore.Retrieve(propKey);
                             property.SetValue(TargetReference.Target, storedValue, null);
+                        }
+                        else if (Defaults.ContainsKey(propKey))
+                        {
+                            property.SetValue(TargetReference.Target, Defaults[propKey], null);
                         }
                     }
                     catch(Exception ex)
@@ -237,6 +243,12 @@ namespace Thingie.Tracking
               .Compile();
 
             eventInfo.AddEventHandler(eventSourceObject, handler);
+            return this;
+        }
+
+        public TrackingConfiguration SetPropertyDefault<T>(Expression<Func<T, object>> property, object value)
+        {
+            Defaults[ConstructPropertyKey(GetPropertyNameFromExpression(property))] = value;
             return this;
         }
 
