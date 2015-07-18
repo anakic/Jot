@@ -40,16 +40,17 @@ namespace Thingie.Tracking
         public SettingsTracker(IObjectStore objectStore)
         {
             ObjectStore = objectStore;
-            WireUpAutomaticPersist();
         }
 
         #region automatic persisting
+        bool _isWiredUp = false;
         protected virtual void WireUpAutomaticPersist()
         {
             if (System.Windows.Application.Current != null)//wpf
                 System.Windows.Application.Current.Exit += (s, e) => { PersistAutomaticTargets(); };
             else //winforms
                 System.Windows.Forms.Application.ApplicationExit += (s, e) => { PersistAutomaticTargets(); };
+            _isWiredUp = true;
         }
         #endregion
 
@@ -60,6 +61,9 @@ namespace Thingie.Tracking
         /// <returns></returns>
         public TrackingConfiguration Configure(object target)
         {
+            if(!_isWiredUp)
+                WireUpAutomaticPersist();
+
             TrackingConfiguration config = FindExistingConfig(target);
             if (config == null)
                 _configurations.Add(config = new TrackingConfiguration(target, this));

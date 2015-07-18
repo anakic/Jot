@@ -12,5 +12,6 @@ namespace Thingie.Tracking.DataStoring
         bool ContainsKey(string key);
         void Persist(object target, string key);
         object Retrieve(string key);
+        void Remove(string key);
     }
 }

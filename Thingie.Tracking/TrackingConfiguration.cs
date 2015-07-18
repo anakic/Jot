@@ -75,11 +75,12 @@ namespace Thingie.Tracking
 
         public string Key { get; set; }
         public HashSet<string> Properties { get; set; }
-        public Dictionary<string, object> Defaults { get; set; }//todo: add DevaultValue property to trackable attribute
+        public Dictionary<string, object> Defaults { get; set; }//todo: add DefaultValue property to trackable attribute
         public WeakReference TargetReference { get; private set; }
         public PersistModes Mode { get; set; }
 
         #region apply/persist events
+
         public event EventHandler<TrackingOperationEventArgs> ApplyingState;
         private bool OnApplyingState()
         {
@@ -166,7 +167,7 @@ namespace Thingie.Tracking
         public void Apply()
         {
             Stopwatch sw = new Stopwatch();
-            
+
             if (TargetReference.IsAlive && OnApplyingState())
             {
                 foreach (string propertyName in Properties)
@@ -186,9 +187,9 @@ namespace Thingie.Tracking
                             property.SetValue(TargetReference.Target, Defaults[propKey], null);
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
-                        Trace.WriteLine(string.Format("TRACKING: Applying tracking to property with key='{0}' failed. ExceptionType:'{1}', message: '{2}'!", propKey, ex.GetType().Name, ex.Message));
+                        Debug.WriteLine(string.Format("TRACKING: Applying tracking to property with key='{0}' failed. ExceptionType:'{1}', message: '{2}'!", propKey, ex.GetType().Name, ex.Message));
                     }
                 }
 
@@ -334,6 +335,23 @@ namespace Thingie.Tracking
         private string ConstructPropertyKey(string propertyName)
         {
             return string.Format("{0}_{1}.{2}", TargetReference.Target.GetType().Name, Key, propertyName);
+        }
+
+        public TrackingConfiguration ClearSavedState()
+        {
+            foreach (string propertyName in Properties)
+            {
+                string propKey = ConstructPropertyKey(propertyName);
+                try
+                {
+                    _tracker.ObjectStore.Remove(propKey);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(string.Format("TRACKING: Failed to delete property '{0}'. ExceptionType:'{1}', message: '{2}'!", propKey, ex.GetType().Name, ex.Message));
+                }
+            }
+            return this;
         }
     }
 }

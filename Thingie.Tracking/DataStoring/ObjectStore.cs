@@ -55,5 +55,10 @@ namespace Thingie.Tracking.DataStoring
             }
             return _createdInstances[key];
         }
+
+        public void Remove(string key)
+        {
+            DataStore.RemoveData(key);
+        }
     }
 }
