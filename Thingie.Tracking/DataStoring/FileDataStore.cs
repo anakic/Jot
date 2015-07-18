@@ -8,20 +8,14 @@ using System.Reflection;
 
 namespace Thingie.Tracking.DataStoring
 {
-    public class FileDataStore : IDataStore
+    public class FileDataStore : XmlDataStoreBase
     {
-        XDocument _document;
-
-        const string ROOT_TAG = "Data";
-        const string ITEM_TAG = "Item";
-        const string ID_ATTRIBUTE = "Id";
-
-        public string FilePath { get; private set; }
+        public string FilePath { get; set; }
 
         public FileDataStore(System.Environment.SpecialFolder baseFolder)
             : this(ConstructPath(baseFolder))
         {
-            
+
         }
 
         public FileDataStore(System.Environment.SpecialFolder baseFolder, string subFolder, string fileName)
@@ -32,69 +26,22 @@ namespace Thingie.Tracking.DataStoring
         public FileDataStore(string filePath)
         {
             FilePath = filePath;
+            string directory = Path.GetDirectoryName(FilePath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+        }
 
-            bool loaded = false;
+        protected override string Read()
+        {
             if (File.Exists(FilePath))
-            {
-                try
-                {
-                    _document = XDocument.Load(FilePath);
-                    loaded = true;
-                }
-                catch 
-                {
-                    File.Delete(filePath);
-                }
-            }
-            
-            if(!loaded)
-            {
-                string directory = Path.GetDirectoryName(filePath);
-                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                    Directory.CreateDirectory(directory);
-
-                _document = new XDocument();
-                _document.Add(new XElement(ROOT_TAG));
-            }
-        }
-
-        public byte[] GetData(string identifier)
-        {
-            XElement itemElement = GetItem(identifier);
-            if (itemElement == null)
-                return null;
+                return File.ReadAllText(FilePath);
             else
-                return Convert.FromBase64String((string)itemElement.Value);
+                return null;
         }
 
-        public void SetData(byte[] data, string identifier)
+        protected override void Save(string contents)
         {
-            XElement itemElement = GetItem(identifier);
-            if (itemElement == null)
-            {
-                itemElement = new XElement(ITEM_TAG, new XAttribute(ID_ATTRIBUTE, identifier));
-                _document.Root.Add(itemElement);
-            }
-
-            itemElement.Value = Convert.ToBase64String(data);
-            _document.Save(FilePath);
-        }
-
-        public void RemoveData(string identifier)
-        { 
-            XElement itemElement = GetItem(identifier);
-            if (itemElement != null)
-                itemElement.Remove();
-        }
-
-        private XElement GetItem(string identifier)
-        {
-            return _document.Root.Elements(ITEM_TAG).SingleOrDefault(el => (string)el.Attribute(ID_ATTRIBUTE) == identifier);
-        }
-
-        public bool ContainsKey(string identifier)
-        {
-            return GetItem(identifier) != null;
+            File.WriteAllText(FilePath, contents);
         }
 
         #region helper
@@ -122,5 +69,88 @@ namespace Thingie.Tracking.DataStoring
             return settingsFilePath;
         }
         #endregion
+    }
+
+    public abstract class XmlDataStoreBase : IDataStore
+    {
+        const string ROOT_TAG = "Data";
+        const string ITEM_TAG = "Item";
+        const string ID_ATTRIBUTE = "Id";
+
+        protected abstract string Read();
+        protected abstract void Save(string contents);
+
+        XDocument _document;
+        private XDocument Document
+        {
+            get
+            {
+                if (_document == null)
+                {
+                    try
+                    {
+                        _document = XDocument.Parse(Read());
+                        if (_document.Element(ROOT_TAG) == null)
+                            _document = null;//a corrupt store, we'll make a new one
+                    }
+                    catch
+                    {
+                        _document = null;//a corrupt store, we'll make a new one
+                    }
+
+
+                    if (_document == null)
+                    {
+                        _document = new XDocument();
+                        _document.Add(new XElement(ROOT_TAG));
+                    }
+                }
+                return _document;
+            }
+        }
+
+        public byte[] GetData(string identifier)
+        {
+            XElement itemElement = GetItem(identifier);
+            if (itemElement == null)
+                return null;
+            else
+                return Convert.FromBase64String((string)itemElement.Value);
+        }
+
+        public void SetData(byte[] data, string identifier)
+        {
+            XElement itemElement = GetItem(identifier);
+            if (itemElement == null)
+            {
+                itemElement = new XElement(ITEM_TAG, new XAttribute(ID_ATTRIBUTE, identifier));
+                Document.Root.Add(itemElement);
+            }
+
+            itemElement.Value = Convert.ToBase64String(data);
+            Save(Document.ToString());
+        }
+
+        public void RemoveData(string identifier)
+        {
+            XElement itemElement = GetItem(identifier);
+            if (itemElement != null)
+                itemElement.Remove();
+        }
+
+        private XElement GetItem(string identifier)
+        {
+            return Document.Root.Elements(ITEM_TAG).SingleOrDefault(el => (string)el.Attribute(ID_ATTRIBUTE) == identifier);
+        }
+
+        public bool ContainsKey(string identifier)
+        {
+            return GetItem(identifier) != null;
+        }
+
+        public override string ToString()
+        {
+            return Document.ToString();
+        }
     }
 }

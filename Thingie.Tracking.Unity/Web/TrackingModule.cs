@@ -8,7 +8,6 @@ using System.Web.SessionState;
 using Thingie.Tracking.DataStoring;
 using Thingie.Tracking.Serialization;
 using System.Web.UI;
-using System.Web.Mvc;
 
 namespace Thingie.Tracking.Unity.Web
 {
