@@ -6,18 +6,24 @@ using System.Threading.Tasks;
 
 namespace Thingie.Tracking
 {
-    public class TrackedProperty
+    public class TrackedPropertyDescriptor
     {
-        public string Name { get; private set; }
-        public Func<object> Getter { get; private set; }
+        public Func<object, object> Getter { get; private set; }
         public Action<object, object> Setter { get; private set; }
-        public Func<object> DefaultValueGetter { get; private set; }
+        public bool IsDefaultSpecified { get; private set; }
+        public object DefaultValue { get; private set; }
 
-        public TrackedProperty(string name, Func<object> getter, Action<object, object> setter, Func<object> defaultValueGetter)
+        public TrackedPropertyDescriptor(Func<object, object> getter, Action<object, object> setter)
+            : this(getter, setter, false, null)
         {
-            Getter = () => getter();
-            Setter = (t,v) => setter(t,v);
-            DefaultValueGetter = defaultValueGetter;
+        }
+
+        public TrackedPropertyDescriptor(Func<object, object> getter, Action<object, object> setter, bool isDefaultSpecified, object defaultValue)
+        {
+            Getter = getter;
+            Setter = setter;
+            IsDefaultSpecified = isDefaultSpecified;
+            DefaultValue = defaultValue;
         }
     }
 }

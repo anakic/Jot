@@ -22,101 +22,54 @@ namespace Thingie.Tracking
         Manual
     }
 
-    //public static class PropertyInfoExtensions
-    //{
-    //    public static Func<T, object> GetValueGetter<T>(this PropertyInfo propertyInfo)
-    //    {
-    //        if (typeof(T) != propertyInfo.DeclaringType)
-    //        {
-    //            throw new ArgumentException();
-    //        }
-
-    //        var instance = Expression.Parameter(propertyInfo.DeclaringType, "i");
-    //        var property = Expression.Property(instance, propertyInfo);
-    //        var convert = Expression.TypeAs(property, typeof(object));
-    //        return (Func<T, object>)Expression.Lambda(convert, instance).Compile();
-    //    }
-
-    //    public static Action<T, object> GetValueSetter<T>(this PropertyInfo propertyInfo)
-    //    {
-    //        if (typeof(T) != propertyInfo.DeclaringType)
-    //        {
-    //            throw new ArgumentException();
-    //        }
-
-    //        var instance = Expression.Parameter(propertyInfo.DeclaringType, "i");
-    //        var argument = Expression.Parameter(typeof(object), "a");
-    //        var setterCall = Expression.Call(
-    //            instance,
-    //            propertyInfo.GetSetMethod(),
-    //            Expression.Convert(argument, propertyInfo.PropertyType));
-    //        return (Action<T, object>)Expression.Lambda(setterCall, instance, argument).Compile();
-    //    }
-    //}
-
     public sealed class TrackingConfiguration
     {
-        sealed class TypeTrackingMetaData
-        {
-            public string Context { get; private set; }
-            public string KeyPropertyName { get; private set; }
-            public IEnumerable<string> PropertyNames { get; private set; }
-
-            public TypeTrackingMetaData(string context, string keyPropertyName, IEnumerable<string> propertyNames)
-            {
-                Context = context;
-                KeyPropertyName = keyPropertyName;
-                PropertyNames = propertyNames;
-            }
-        }
-
         public SettingsTracker SettingsTracker { get; private set; }
 
         public string Key { get; set; }
-        public HashSet<string> Properties { get; set; }
-        public Dictionary<string, object> Defaults { get; set; }//todo: add DefaultValue property to trackable attribute
+        public Dictionary<string, TrackedPropertyDescriptor> Defaults { get; set; }//todo: add DefaultValue property to trackable attribute
         public WeakReference TargetReference { get; private set; }
         public PersistModes Mode { get; set; }
 
         #region apply/persist events
 
-        public event EventHandler<TrackingOperationEventArgs> ApplyingState;
-        private bool OnApplyingState()
+        public event EventHandler<TrackingOperationEventArgs> ApplyingProperty;
+        private bool OnApplyingState(string property)
         {
-            if (ApplyingState != null)
+            if (ApplyingProperty != null)
             {
-                TrackingOperationEventArgs args = new TrackingOperationEventArgs(this);
-                ApplyingState(this, args);
+                TrackingOperationEventArgs args = new TrackingOperationEventArgs(this, property);
+                ApplyingProperty(this, args);
                 return !args.Cancel;
             }
             else
                 return true;
         }
 
-        public event EventHandler AppliedState;
-        private void OnAppliedState()
+        public event EventHandler StateApplied;
+        private void OnStateApplied()
         {
-            if (AppliedState != null)
-                AppliedState(this, EventArgs.Empty);
+            if (StateApplied != null)
+                StateApplied(this, EventArgs.Empty);
         }
 
-        public event EventHandler<TrackingOperationEventArgs> PersistingState;
-        private bool OnPersistingState()
+        public event EventHandler<TrackingOperationEventArgs> PersistingProperty;
+        private bool OnPersistingState(string property)
         {
-            if (PersistingState != null)
+            if (PersistingProperty != null)
             {
-                TrackingOperationEventArgs args = new TrackingOperationEventArgs(this);
-                PersistingState(this, args);
+                TrackingOperationEventArgs args = new TrackingOperationEventArgs(this, property);
+                PersistingProperty(this, args);
                 return !args.Cancel;
             }
             return true;
         }
 
-        public event EventHandler PersistedState;
-        private void OnPersistedState()
+        public event EventHandler StatePersisted;
+        private void OnStatePersisted()
         {
-            if (PersistedState != null)
-                PersistedState(this, EventArgs.Empty);
+            if (StatePersisted != null)
+                StatePersisted(this, EventArgs.Empty);
         }
         #endregion
 
@@ -124,8 +77,7 @@ namespace Thingie.Tracking
         {
             SettingsTracker = tracker;
             this.TargetReference = new WeakReference(target);
-            Properties = new HashSet<string>();
-            Defaults = new Dictionary<string, object>();
+            Defaults = new Dictionary<string, TrackedPropertyDescriptor>();
             AddMetaData();
 
             ITrackingAware trackingAwareTarget = target as ITrackingAware;
@@ -139,58 +91,59 @@ namespace Thingie.Tracking
 
         public void Persist()
         {
-            if (TargetReference.IsAlive && OnPersistingState())
+            if (TargetReference.IsAlive)
             {
-                foreach (string propertyName in Properties)
+                foreach (string propertyName in Defaults.Keys)
                 {
-                    PropertyInfo property = TargetReference.Target.GetType().GetProperty(propertyName);
+                    if (OnPersistingState(propertyName) == false)
+                        continue;
 
-                    string propKey = ConstructPropertyKey(property.Name);
                     try
                     {
-                        object currentValue = property.GetValue(TargetReference.Target, null);
-                        SettingsTracker.ObjectStore.Persist(currentValue, propKey);
+                        SettingsTracker.ObjectStore.Persist(Defaults[propertyName].Getter(TargetReference.Target), ConstructPropertyKey(propertyName));
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        Trace.WriteLine("Persisting of value '{propKey}' failed!");
+                        Trace.WriteLine(string.Format("Persisting failed, property key = '{0}', message='{1}'.", ConstructPropertyKey(propertyName), ex.Message));
                     }
                 }
 
-                OnPersistedState();
+                OnStatePersisted();
             }
         }
 
         bool _applied = false;
-        //[DebuggerHidden]
         public void Apply()
         {
-            if (TargetReference.IsAlive && OnApplyingState())
+            if (TargetReference.IsAlive)
             {
-                foreach (string propertyName in Properties)
+                foreach (string propertyName in Defaults.Keys)
                 {
-                    PropertyInfo property = TargetReference.Target.GetType().GetProperty(propertyName);
-                    string propKey = ConstructPropertyKey(property.Name);
-                    
-                    if (SettingsTracker.ObjectStore.ContainsKey(propKey))
+                    if (OnApplyingState(propertyName) == false)
+                        continue;
+
+                    string key = ConstructPropertyKey(propertyName);
+                    TrackedPropertyDescriptor descriptor = Defaults[propertyName];
+
+                    if (SettingsTracker.ObjectStore.ContainsKey(key))
                     {
                         try
                         {
-                            object storedValue = SettingsTracker.ObjectStore.Retrieve(propKey);
-                            property.SetValue(TargetReference.Target, storedValue, null);
+                            object storedValue = SettingsTracker.ObjectStore.Retrieve(key);
+                            descriptor.Setter(TargetReference.Target, storedValue);
                         }
                         catch (Exception ex)
                         {
-                            Trace.WriteLine(string.Format("TRACKING: Applying tracking to property with key='{0}' failed. ExceptionType:'{1}', message: '{2}'!", propKey, ex.GetType().Name, ex.Message));
+                            Trace.WriteLine(string.Format("TRACKING: Applying tracking to property with key='{0}' failed. ExceptionType:'{1}', message: '{2}'!", key, ex.GetType().Name, ex.Message));
                         }
                     }
-                    else if (Defaults.ContainsKey(propKey))
+                    else if (descriptor.IsDefaultSpecified)
                     {
-                        property.SetValue(TargetReference.Target, Defaults[propKey], null);
+                        descriptor.Setter(TargetReference.Target, descriptor.DefaultValue);
                     }
                 }
 
-                OnAppliedState();
+                OnStateApplied();
             }
             _applied = true;
         }
@@ -198,7 +151,7 @@ namespace Thingie.Tracking
         public TrackingConfiguration AddProperties(params string[] properties)
         {
             foreach (string property in properties)
-                Properties.Add(property);
+                Defaults[property] = CreateDescriptor(property, false, null);
             return this;
         }
         public TrackingConfiguration AddProperties<T>(params Expression<Func<T, object>>[] properties)
@@ -206,10 +159,23 @@ namespace Thingie.Tracking
             AddProperties(properties.Select(p => GetPropertyNameFromExpression(p)).ToArray());
             return this;
         }
+
+        public TrackingConfiguration AddProperty<T>(Expression<Func<T, object>> property, object defaultValue)
+        {
+            AddProperty(GetPropertyNameFromExpression(property), defaultValue);
+            return this;
+        }
+
+        public TrackingConfiguration AddProperty(string property, object defaultValue)
+        {
+            Defaults[property] = CreateDescriptor(property, true, defaultValue);
+            return this;
+        }
+
         public TrackingConfiguration RemoveProperties(params string[] properties)
         {
             foreach (string property in properties)
-                Properties.Remove(property);
+                Defaults.Remove(property);
             return this;
         }
         public TrackingConfiguration RemoveProperties<T>(params Expression<Func<T, object>>[] properties)
@@ -244,12 +210,6 @@ namespace Thingie.Tracking
             return this;
         }
 
-        public TrackingConfiguration SetPropertyDefault<T>(Expression<Func<T, object>> property, object value)
-        {
-            Defaults[ConstructPropertyKey(GetPropertyNameFromExpression(property))] = value;
-            return this;
-        }
-
         public TrackingConfiguration SetMode(PersistModes mode)
         {
             this.Mode = mode;
@@ -265,58 +225,29 @@ namespace Thingie.Tracking
         private TrackingConfiguration AddMetaData()
         {
             Type t = TargetReference.Target.GetType();
-            TypeTrackingMetaData metadata = GetTypeData(t, SettingsTracker != null ? SettingsTracker.Name : null);
 
-            if (!string.IsNullOrEmpty(metadata.KeyPropertyName))
-                Key = t.GetProperty(metadata.KeyPropertyName).GetValue(TargetReference.Target, null).ToString();
-            foreach (string propName in metadata.PropertyNames)
-                this.Properties.Add(propName);
-            return this;
-        }
+            PropertyInfo keyProperty = t.GetProperties().SingleOrDefault(pi => pi.IsDefined(typeof(TrackingKeyAttribute), true));
+            if (keyProperty != null)
+                Key = keyProperty.GetValue(TargetReference.Target, null).ToString();
 
-        //cache of type data for each type/context pair
-        static Dictionary<Tuple<Type, string>, TypeTrackingMetaData> _typeMetadataCache = new Dictionary<Tuple<Type, string>, TypeTrackingMetaData>();
-        private static TypeTrackingMetaData GetTypeData(Type t, string trackerName)
-        {
-            Tuple<Type, string> _key = new Tuple<Type, string>(t, trackerName);
-            if (!_typeMetadataCache.ContainsKey(_key))
+            foreach (PropertyInfo pi in t.GetProperties())
             {
-                PropertyInfo keyProperty = t.GetProperties().SingleOrDefault(pi => pi.IsDefined(typeof(TrackingKeyAttribute), true));
+                //don't track the key property
+                if (pi == keyProperty)
+                    continue;
 
-                //see if TrackableAttribute(true) exists on the target class
-                bool isClassMarkedAsTrackable = false;
-                TrackableAttribute targetClassTrackableAtt = t.GetCustomAttributes(true).OfType<TrackableAttribute>().Where(ta => ta.TrackerName == trackerName).FirstOrDefault();
-                if (targetClassTrackableAtt != null && targetClassTrackableAtt.IsTrackable)
-                    isClassMarkedAsTrackable = true;
-
-                //add properties that need to be tracked
-                List<string> properties = new List<string>();
-                foreach (PropertyInfo pi in t.GetProperties())
+                TrackableAttribute propTrackableAtt = pi.GetCustomAttributes(true).OfType<TrackableAttribute>().Where(ta => ta.TrackerName == SettingsTracker.Name).SingleOrDefault();
+                if (propTrackableAtt != null)
                 {
-                    //don't track the key property
-                    if (pi == keyProperty)
-                        continue;
-
-                    TrackableAttribute propTrackableAtt = pi.GetCustomAttributes(true).OfType<TrackableAttribute>().Where(ta => ta.TrackerName == trackerName).FirstOrDefault();
-                    if (propTrackableAtt == null)
-                    {
-                        //if the property is not marked with Trackable(true), check if the class is
-                        if (isClassMarkedAsTrackable)
-                            properties.Add(pi.Name);
-                    }
+                    DefaultValueAttribute defaultAtt = pi.CustomAttributes.OfType<DefaultValueAttribute>().SingleOrDefault();
+                    if (defaultAtt != null)
+                        Defaults[pi.Name] = CreateDescriptor(pi.Name, true, defaultAtt.Value);
                     else
-                    {
-                        if (propTrackableAtt.IsTrackable)
-                            properties.Add(pi.Name);
-                    }
+                        Defaults[pi.Name] = CreateDescriptor(pi.Name, false, null);
                 }
-
-                string keyName = null;
-                if (keyProperty != null)
-                    keyName = keyProperty.Name;
-                _typeMetadataCache[_key] = new TypeTrackingMetaData(trackerName, keyName, properties);
             }
-            return _typeMetadataCache[_key];
+
+            return this;
         }
 
         private static string GetPropertyNameFromExpression<T>(Expression<Func<T, object>> exp)
@@ -329,26 +260,36 @@ namespace Thingie.Tracking
             return membershipExpression.Member.Name;
         }
 
-        private string ConstructPropertyKey(string propertyName)
-        {
-            return string.Format("{0}_{1}.{2}", TargetReference.Target.GetType().Name, Key, propertyName);
-        }
-
         public TrackingConfiguration ClearSavedState()
         {
-            foreach (string propertyName in Properties)
+            foreach (string propertyName in Defaults.Keys)
             {
-                string propKey = ConstructPropertyKey(propertyName);
+                string key = ConstructPropertyKey(propertyName);
                 try
                 {
-                    SettingsTracker.ObjectStore.Remove(propKey);
+                    SettingsTracker.ObjectStore.Remove(key);
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(string.Format("TRACKING: Failed to delete property '{0}'. ExceptionType:'{1}', message: '{2}'!", propKey, ex.GetType().Name, ex.Message));
+                    Debug.WriteLine(string.Format("TRACKING: Failed to delete property '{0}'. ExceptionType:'{1}', message: '{2}'!", key, ex.GetType().Name, ex.Message));
                 }
             }
             return this;
+        }
+
+        private TrackedPropertyDescriptor CreateDescriptor(string propertyName, bool isDefaultSpecifier, object defaultValue)
+        {
+            PropertyInfo pi = TargetReference.Target.GetType().GetProperty(propertyName);
+            return new TrackedPropertyDescriptor(
+                obj => pi.GetValue(obj, null),
+                (obj, val) => pi.SetValue(obj, val, null),
+                isDefaultSpecifier,
+                defaultValue);
+        }
+
+        private string ConstructPropertyKey(string propertyName)
+        {
+            return string.Format("{0}_{1}.{2}", TargetReference.Target.GetType().Name, Key, propertyName);
         }
     }
 }

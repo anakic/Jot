@@ -9,9 +9,13 @@ namespace Thingie.Tracking
     public class TrackingOperationEventArgs : CancelEventArgs
     {
         public TrackingConfiguration Configuration { get; private set; }
-        public TrackingOperationEventArgs(TrackingConfiguration configuration)
+
+        public string Property { get; set; }
+
+        public TrackingOperationEventArgs(TrackingConfiguration configuration, string property)
         {
             Configuration = configuration;
+            Property = property;
         }
     }
 }
