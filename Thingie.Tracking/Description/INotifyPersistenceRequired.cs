@@ -11,11 +11,11 @@ namespace Thingie.Tracking.Description
     /// Primarily useful with Manual persist mode, although not limited to Manual mode (you could use it to persist targets more often so changes would not be lost).
     /// </remarks>
     /// </summary>
-    public interface IRequestTracking
+    public interface INotifyPersistenceRequired
     {
         /// <summary>
-        /// Raise this event to request persisting the settings for this object. 
+        /// Raise this event to request persisting the settings of this object. 
         /// </summary>
-        event EventHandler SettingsPersistRequest;
+        event EventHandler PersistenceRequired;
     }
 }

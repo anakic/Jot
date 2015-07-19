@@ -70,7 +70,7 @@
     <Compile Include="DefaultObjectStoreUtil\SerializedStorage\IsolatedStorageStore.cs" />
     <Compile Include="DefaultObjectStoreUtil\SerializedStorage\XmlStoreBase.cs" />
     <Compile Include="IObjectStore.cs" />
-    <Compile Include="Description\IRaiseTrackingNotifier.cs" />
+    <Compile Include="Description\INotifyPersistenceRequired.cs" />
     <Compile Include="DefaultObjectStoreUtil\Serialization\ConverterSerializer.cs" />
     <Compile Include="DefaultObjectStoreUtil\Serialization\JsonSerializer.cs" />
     <Compile Include="DefaultObjectStoreUtil\SerializedStorage\FileStore.cs" />
@@ -81,6 +81,8 @@
     <Compile Include="DefaultObjectStoreUtil\Serialization\ISerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Description\ITrackingAware.cs" />
+    <Compile Include="SessionEndNotification\DesktopSessionEndNotifier.cs" />
+    <Compile Include="SessionEndNotification\ISessionEndNotifier.cs" />
     <Compile Include="SettingsTracker.cs" />
     <Compile Include="Description\TrackableAttribute.cs" />
     <Compile Include="TrackedProperty.cs" />

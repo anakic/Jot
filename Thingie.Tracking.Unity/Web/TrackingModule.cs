@@ -71,9 +71,9 @@ namespace Thingie.Tracking.Unity.Web
         protected virtual void RegisterTrackers(IUnityContainer container)
         {
             //session level tracker - for properties with [Trackable(Name="SESSION")]
-            _container.RegisterType<SettingsTracker>(AspNetTrackerNames.SESSION, new SessionLifetimeManager(), new InjectionFactory(iocCont => new SettingsTracker(new SessionStore(), new BinarySerializer()) { Name = AspNetTrackerNames.SESSION }));
+            _container.RegisterType<SettingsTracker>(AspNetTrackerNames.SESSION, new SessionLifetimeManager(), new InjectionFactory(iocCont => new SettingsTracker(new SessionStore(), new BinarySerializer(), null) { Name = AspNetTrackerNames.SESSION }));
             //user level tracker - for properties with [Trackable(Name="USER")]
-            _container.RegisterType<SettingsTracker>(AspNetTrackerNames.USERPROFILE, new RequestLifetimeManager(), new InjectionFactory(c => new SettingsTracker(new ProfileStore(), new BinarySerializer()) { Name = AspNetTrackerNames.USERPROFILE }));
+            _container.RegisterType<SettingsTracker>(AspNetTrackerNames.USERPROFILE, new RequestLifetimeManager(), new InjectionFactory(c => new SettingsTracker(new ProfileStore(), new BinarySerializer(), null) { Name = AspNetTrackerNames.USERPROFILE }));
         }
 
         void context_PreRequestHandlerExecute(object sender, EventArgs e)
@@ -96,11 +96,11 @@ namespace Thingie.Tracking.Unity.Web
             {
                 //named trackers
                 foreach (SettingsTracker tracker in _container.ResolveAll<SettingsTracker>())
-                    tracker.PersistAutomaticTargets();
+                    tracker.PersistAll();
 
                 //unnamed tracker
                 if (_container.IsRegistered<SettingsTracker>())
-                    _container.Resolve<SettingsTracker>().PersistAutomaticTargets();
+                    _container.Resolve<SettingsTracker>().PersistAll();
             }
         }
 

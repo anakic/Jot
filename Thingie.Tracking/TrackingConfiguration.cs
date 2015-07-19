@@ -10,18 +10,6 @@ using Thingie.Tracking.Description;
 
 namespace Thingie.Tracking
 {
-    public enum PersistModes
-    {
-        /// <summary>
-        /// State is persisted automatically upon application close
-        /// </summary>
-        Automatic,
-        /// <summary>
-        /// State is persisted only upon request
-        /// </summary>
-        Manual
-    }
-
     public sealed class TrackingConfiguration
     {
         public SettingsTracker SettingsTracker { get; private set; }
@@ -29,7 +17,6 @@ namespace Thingie.Tracking
         public string Key { get; set; }
         public Dictionary<string, TrackedPropertyDescriptor> Defaults { get; set; }//todo: add DefaultValue property to trackable attribute
         public WeakReference TargetReference { get; private set; }
-        public PersistModes Mode { get; set; }
 
         #region apply/persist events
 
@@ -84,9 +71,9 @@ namespace Thingie.Tracking
             if (trackingAwareTarget != null)
                 trackingAwareTarget.InitConfiguration(this);
 
-            IRequestTracking asNotify = target as IRequestTracking;
+            INotifyPersistenceRequired asNotify = target as INotifyPersistenceRequired;
             if (asNotify != null)
-                asNotify.SettingsPersistRequest += (s, e) => Persist();
+                asNotify.PersistenceRequired += (s, e) => Persist();
         }
 
         public void Persist()
@@ -191,8 +178,6 @@ namespace Thingie.Tracking
 
         public TrackingConfiguration RegisterPersistTrigger(string eventName, object eventSourceObject)
         {
-            Mode = PersistModes.Manual;
-
             EventInfo eventInfo = eventSourceObject.GetType().GetEvent(eventName);
             var parameters = eventInfo.EventHandlerType
                 .GetMethod("Invoke")
@@ -210,13 +195,7 @@ namespace Thingie.Tracking
             return this;
         }
 
-        public TrackingConfiguration SetMode(PersistModes mode)
-        {
-            this.Mode = mode;
-            return this;
-        }
-
-        public TrackingConfiguration SetKey(string key)
+        public TrackingConfiguration SetId(string key)
         {
             this.Key = key;
             return this;
