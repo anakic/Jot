@@ -12,6 +12,6 @@ namespace TestWPF
     //this class can be replaced by the use of an IOC container
     static class Services
     {
-        public static SettingsTracker Tracker = new SettingsTracker();
+        public static SettingsTracker Tracker = SettingsTracker.CreateTrackerForDesktop();
     }
 }

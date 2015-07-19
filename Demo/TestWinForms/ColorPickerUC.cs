@@ -49,7 +49,7 @@ namespace TestWinForms
 
         public void InitConfiguration(Thingie.Tracking.TrackingConfiguration configuration)
         {
-            configuration.SetKey(this.Name);
+            configuration.SetId(this.Name);
         }
     }
 }

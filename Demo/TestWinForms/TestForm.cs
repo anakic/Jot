@@ -24,11 +24,13 @@ namespace TestWinForms
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-
+            
             var trackingConfig = Services.Tracker.Configure(this)
                 .AddProperties<Form>(f => f.Height, f => f.Width, f => f.Top, f => f.Left, f => f.WindowState)
-                .SetKey(this.Name);
-            trackingConfig.ApplyingState += (sender, args) => { args.Cancel = WindowState == FormWindowState.Minimized; };
+                .RegisterPersistTrigger("ResizeEnd")
+                .SetId(this.Name);
+            trackingConfig.PersistingProperty += (sender, args) => { args.Cancel = WindowState == FormWindowState.Minimized; };
+
             trackingConfig.Apply();
             
             //Track colorpicker1 usercontrol (based on specified attributes)

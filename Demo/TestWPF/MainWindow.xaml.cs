@@ -30,7 +30,7 @@ namespace TestWPF
             //set up tracking and apply state for the main window
             Services.Tracker.Configure(this)
                 .AddProperties<MainWindow>(w => w.Height, w => w.Width, w => w.Left, w => w.Top, w => w.WindowState)
-                .SetKey("MainWindow")//not really needed since only one instance of MainWindow will ever exist
+                .SetId("MainWindow")//not really needed since only one instance of MainWindow will ever exist, the default id is the name of the type
                 .Apply();
 
             //set up tracking and apply state to the settings object
@@ -38,7 +38,7 @@ namespace TestWPF
             
             //track tabcontrol's selected index
             Services.Tracker.Configure(tabControl)
-                .SetKey(tabControl.Name)
+                .SetId(tabControl.Name)
                 .AddProperties<TabControl>(tc => tc.SelectedIndex).Apply();
 
             this.DataContext = _settings;
