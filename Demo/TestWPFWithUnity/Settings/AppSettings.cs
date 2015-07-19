@@ -8,13 +8,11 @@ using Thingie.Tracking.Description;
 
 namespace TestWPFWithUnity.Settings
 {
-    //Notice the Trackable attribute on the class - all properties will be tracked
-    //by default. In this case, if you don't want to track a specific property, mark
-    //the property with Trackable(false).
-    [Trackable]
     public class AppSettings
     {
+        [Trackable]
         public DisplaySettings DisplaySettings { get; set; }
+        [Trackable]
         public GeneralSettings GeneralSettings { get; set; }
 
         public AppSettings()

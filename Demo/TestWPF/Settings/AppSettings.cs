@@ -8,10 +8,11 @@ using Thingie.Tracking.Description;
 
 namespace TestWPF.Settings
 {
-    [Trackable]
     public class AppSettings
     {
+        [Trackable]
         public DisplaySettings DisplaySettings { get; set; }
+        [Trackable]
         public GeneralSettings GeneralSettings { get; set; }
 
         public AppSettings()
