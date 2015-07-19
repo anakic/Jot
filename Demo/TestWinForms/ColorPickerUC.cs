@@ -6,17 +6,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using Thingie.Tracking.Attributes;
+using Thingie.Tracking.Description;
 
 namespace TestWinForms
 {
-    public partial class ColorPickerUC : UserControl
+    public partial class ColorPickerUC : UserControl, ITrackingAware
     {
-        [TrackingKey]
-        public string Key
-        {
-            get { return this.Name; }
-        }
         [Trackable]
         public byte Red 
         {
@@ -50,6 +45,11 @@ namespace TestWinForms
         private void tb_ValueChanged(object sender, EventArgs e)
         {
             pnlSample.BackColor = Color.FromArgb(255, tbRed.Value, tbGreen.Value, tbBlue.Value);
+        }
+
+        public void InitConfiguration(Thingie.Tracking.TrackingConfiguration configuration)
+        {
+            configuration.SetKey(this.Name);
         }
     }
 }

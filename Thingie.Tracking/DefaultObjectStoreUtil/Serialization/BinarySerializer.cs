@@ -5,24 +5,24 @@ using System.Text;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
-namespace Thingie.Tracking.Serialization
+namespace Thingie.Tracking.DefaultObjectStoreUtil.Serialization
 {
     public class BinarySerializer : ISerializer
     {
         BinaryFormatter _formatter = new BinaryFormatter();
 
-        public byte[] Serialize(object obj)
+        public string Serialize(object obj)
         {
             using (MemoryStream ms = new MemoryStream())
             {
                 _formatter.Serialize(ms, obj);
-                return ms.GetBuffer();
+                return Convert.ToBase64String(ms.GetBuffer());
             }
         }
 
-        public object Deserialize(byte[] bytes)
+        public object Deserialize(string serialized, Type originalType)
         {
-            using (MemoryStream ms = new MemoryStream(bytes))
+            using (MemoryStream ms = new MemoryStream(Convert.FromBase64String(serialized)))
             {
                 return _formatter.Deserialize(ms);
             }

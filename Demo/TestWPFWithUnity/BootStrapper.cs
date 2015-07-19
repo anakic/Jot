@@ -5,10 +5,10 @@ using System.Text;
 using Microsoft.Practices.Unity;
 using System.IO;
 using TestWPFWithUnity.Settings;
-using Thingie.Tracking.DataStoring;
-using Thingie.Tracking.Serialization;
 using Thingie.Tracking;
 using Tracking.Tracking.Unity.Web.Desktop;
+using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
+using Thingie.Tracking.DefaultObjectStoreUtil.Serialization;
 
 namespace TestWPFWithUnity
 {
@@ -23,9 +23,9 @@ namespace TestWPFWithUnity
 
         public void Initialize()
         {
-            _container.RegisterInstance(new SettingsTracker(new FileDataStore(Environment.SpecialFolder.ApplicationData), new JsonSerializer()));
+            _container.RegisterInstance(new SettingsTracker(new FileStore(Environment.SpecialFolder.ApplicationData), new JsonSerializer()));
             _container.RegisterType<AppSettings>(new ContainerControlledLifetimeManager());
-            _container.AddExtension(new WPFTrackingExtension());
+            _container.AddExtension(new WinFormsTrackingExtension());
         }
     }
 }

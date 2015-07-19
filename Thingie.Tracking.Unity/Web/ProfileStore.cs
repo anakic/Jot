@@ -5,7 +5,7 @@ using System.Text;
 using System.Web;
 using System.Runtime.Serialization;
 using System.Web.Profile;
-using Thingie.Tracking.DataStoring;
+using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
 
 namespace Thingie.Tracking.Unity.Web
 {
@@ -17,7 +17,7 @@ namespace Thingie.Tracking.Unity.Web
     /// generic classes in the web.config profile section.
     /// </summary>
     [Serializable]
-    public class TrackedData : Dictionary<string, byte[]>
+    public class TrackedData : Dictionary<string, StoreData>
     {
         public TrackedData(){}
         protected TrackedData(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
@@ -47,12 +47,12 @@ namespace Thingie.Tracking.Unity.Web
             return GetDataObject().ContainsKey(identifier);
         }
 
-        public byte[] GetData(string identifier)
+        public StoreData GetData(string identifier)
         {
-            return (byte[])GetDataObject()[identifier];
+            return GetDataObject()[identifier];
         }
 
-        public void SetData(byte[] data, string identifier)
+        public void SetData(StoreData data, string identifier)
         {
             GetDataObject()[identifier] = data;
             HttpContext.Current.Profile.Save();
@@ -60,7 +60,7 @@ namespace Thingie.Tracking.Unity.Web
 
         public void RemoveData(string identifier)
         {
-            throw new NotImplementedException();
+            GetDataObject().Remove(identifier);
         }
 
         #endregion

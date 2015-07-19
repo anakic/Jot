@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Thingie.Tracking
+namespace Thingie.Tracking.Description
 {
     /// <summary>
     /// Allows the object that is being tracked to customize
@@ -16,6 +16,6 @@ namespace Thingie.Tracking
         /// </summary>
         /// <param name="configuration"></param>
         /// <returns>Return false to cancel applying state</returns>
-        void InitTracking(TrackingConfiguration configuration);
+        void InitConfiguration(TrackingConfiguration configuration);
     }
 }

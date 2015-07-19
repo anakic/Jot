@@ -7,8 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Thingie.Tracking;
-using Thingie.Tracking.DataStoring;
-using Thingie.Tracking.Serialization;
 
 namespace TestWinForms
 {
@@ -27,9 +25,11 @@ namespace TestWinForms
         {
             base.OnLoad(e);
 
-            //WinForms are tricky: if WindowState != Normal, size and location properties are bogus and shouldn't be persisted. 
-            //This extension method configures the tracking so that size and location aren't persisted when WindowState != Normal. 
-            this.ConfigureFormTracking(Services.Tracker).Apply();
+            var trackingConfig = Services.Tracker.Configure(this)
+                .AddProperties<Form>(f => f.Height, f => f.Width, f => f.Top, f => f.Left, f => f.WindowState)
+                .SetKey(this.Name);
+            trackingConfig.ApplyingState += (sender, args) => { args.Cancel = WindowState == FormWindowState.Minimized; };
+            trackingConfig.Apply();
             
             //Track colorpicker1 usercontrol (based on specified attributes)
             Services.Tracker.Configure(colorPicker1).Apply();

@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Thingie.Tracking;
+using Thingie.Tracking.Unity;
 
-namespace Thingie.Tracking.Unity.Web.Desktop
+namespace Tracking.Tracking.Unity.Web.Desktop
 {
     public class WinFormsTrackingExtension : TrackingExtension
     {
         protected override void CustomizeConfiguration(TrackingConfiguration configuration)
         {
-            if(configuration.TargetReference.Target is Form)
-                FormsHelper.ConfigureFormTracking(configuration);
+            Form window = configuration.TargetReference.Target as Form;
+            if (window != null)
+            {
+                configuration
+                    .AddProperties<Form>(f => f.Left, f => f.Top, f => f.Height, f => f.Width, f => f.WindowState)
+                    .RegisterPersistTrigger("Closed");
+            }
             base.CustomizeConfiguration(configuration);
         }
     }

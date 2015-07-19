@@ -6,11 +6,11 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.ComponentModel;
 
-namespace Thingie.Tracking.Serialization
+namespace Thingie.Tracking.DefaultObjectStoreUtil.Serialization
 {
     public interface ISerializer
     {
-        byte[] Serialize(object obj);
-        object Deserialize(byte[] bytes);
+        string Serialize(object obj);
+        object Deserialize(string serialized, Type originalType);
     }
 }

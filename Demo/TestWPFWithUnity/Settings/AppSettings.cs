@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ComponentModel;
-using Thingie.Tracking.Attributes;
 using Thingie.Tracking;
+using Thingie.Tracking.Description;
 
 namespace TestWPFWithUnity.Settings
 {

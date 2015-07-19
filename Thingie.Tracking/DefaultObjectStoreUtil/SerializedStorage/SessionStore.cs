@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Web;
 
-namespace Thingie.Tracking.DataStoring
+namespace Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage
 {
     public class SessionStore : IDataStore
     {
@@ -15,12 +15,12 @@ namespace Thingie.Tracking.DataStoring
             return HttpContext.Current.Session!= null && HttpContext.Current.Session.Keys.OfType<object>().Contains(identifier);
         }
 
-        public byte[] GetData(string identifier)
+        public StoreData GetData(string identifier)
         {
-            return (byte[])HttpContext.Current.Session[identifier];
+            return (StoreData)HttpContext.Current.Session[identifier];
         }
 
-        public void SetData(byte[] data, string identifier)
+        public void SetData(StoreData data, string identifier)
         {
             HttpContext.Current.Session[identifier] = data;
         }

@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Thingie.Tracking.Serialization;
+using Thingie.Tracking.DefaultObjectStoreUtil.Serialization;
+using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
 
-namespace Thingie.Tracking.DataStoring
+namespace Thingie.Tracking.DefaultObjectStoreUtil
 {
-    public class ObjectStore : IObjectStore
+    public class DefaultObjectStore : IObjectStore
     {
         public IDataStore DataStore { get; private set; }
         public ISerializer Serializer { get; private set; }
@@ -15,7 +16,7 @@ namespace Thingie.Tracking.DataStoring
 
         Dictionary<string, object> _createdInstances = new Dictionary<string, object>();
 
-        public ObjectStore(IDataStore dataStore, ISerializer serializer)
+        public DefaultObjectStore(IDataStore dataStore, ISerializer serializer)
         {
             DataStore = dataStore;
             Serializer = serializer;
@@ -27,9 +28,9 @@ namespace Thingie.Tracking.DataStoring
         {
             _createdInstances[key] = target;
             if (target == null)
-                DataStore.RemoveData(key);
+                DataStore.SetData(null, key);//todo: handle null in datastore
             else
-                DataStore.SetData(Serializer.Serialize(target), key);
+                DataStore.SetData(new StoreData(Serializer.Serialize(target), target.GetType()), key);
         }
 
         public bool ContainsKey(string key)
@@ -41,17 +42,20 @@ namespace Thingie.Tracking.DataStoring
         {
             if (!CacheObjects || !_createdInstances.ContainsKey(key))
             {
-                object obj = null;
-                try 
-                { 
-                    obj = Serializer.Deserialize(DataStore.GetData(key)); 
+                try
+                {
+                    StoreData data = DataStore.GetData(key);
+                    if (data.Serialized == null)
+                        return null;
+                    else
+                        _createdInstances[key] = Serializer.Deserialize(data.Serialized, data.OriginalType);
                 }
-                catch 
-                { 
-                    if(RemoveBadData)
+                catch
+                {
+                    if (RemoveBadData)
                         DataStore.RemoveData(key);
+                    throw;
                 }
-                _createdInstances[key] = obj;
             }
             return _createdInstances[key];
         }

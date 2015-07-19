@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Thingie.Tracking.Attributes
+namespace Thingie.Tracking.Description
 {
     /// <summary>
     /// Marks the property as the tracking identifier for the object.

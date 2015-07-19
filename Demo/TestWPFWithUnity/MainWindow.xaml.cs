@@ -13,7 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TestWPFWithUnity.Settings;
 using Thingie.Tracking;
-using Thingie.Tracking.Attributes;
+using Thingie.Tracking.Description;
 
 namespace TestWPFWithUnity
 {

@@ -17,7 +17,7 @@ namespace Tracking.Tracking.Unity.Web.Desktop
             if (window != null)
             {
                 configuration
-                    .AddProperties<Window>(w => w.Left, w => w.Top, w => w.WindowState)
+                    .AddProperties<Window>(w => w.Left, w => w.Top, w => w.Height, w => w.Width, w => w.WindowState)
                     .RegisterPersistTrigger("Closed");
             }
             base.CustomizeConfiguration(configuration);

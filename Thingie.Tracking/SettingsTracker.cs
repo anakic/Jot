@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Thingie.Tracking.DataStoring;
-using Thingie.Tracking.Serialization;
 using System.Windows;
 using System.Diagnostics;
 using System.Reflection;
 using System.Web;
 using System.IO;
+using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
+using Thingie.Tracking.DefaultObjectStoreUtil.Serialization;
+using Thingie.Tracking.DefaultObjectStoreUtil;
 
 namespace Thingie.Tracking
 {
@@ -28,12 +29,12 @@ namespace Thingie.Tracking
         /// </summary>
         /// <param name="baseFolder"></param>
         public SettingsTracker()
-            : this(new FileDataStore(Environment.SpecialFolder.ApplicationData), new BinarySerializer())
+            : this(new FileStore(Environment.SpecialFolder.ApplicationData), new JsonSerializer())
         {
         }
 
         public SettingsTracker(IDataStore store, ISerializer serializer)
-            : this(new ObjectStore(store, serializer))
+            : this(new DefaultObjectStore(store, serializer))
         {
         }
 

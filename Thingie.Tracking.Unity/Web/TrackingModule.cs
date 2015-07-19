@@ -5,9 +5,9 @@ using System.Text;
 using System.Web;
 using Microsoft.Practices.Unity;
 using System.Web.SessionState;
-using Thingie.Tracking.DataStoring;
-using Thingie.Tracking.Serialization;
 using System.Web.UI;
+using Thingie.Tracking.DefaultObjectStoreUtil.Serialization;
+using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
 
 namespace Thingie.Tracking.Unity.Web
 {

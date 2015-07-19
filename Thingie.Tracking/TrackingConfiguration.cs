@@ -5,9 +5,8 @@ using System.Text;
 using System.Reflection;
 using System.Diagnostics;
 using System.Linq.Expressions;
-using Thingie.Tracking.Attributes;
 using System.ComponentModel;
-using Thingie.Tracking.DataStoring;
+using Thingie.Tracking.Description;
 
 namespace Thingie.Tracking
 {
@@ -71,7 +70,7 @@ namespace Thingie.Tracking
             }
         }
 
-        private SettingsTracker _tracker;
+        public SettingsTracker SettingsTracker { get; private set; }
 
         public string Key { get; set; }
         public HashSet<string> Properties { get; set; }
@@ -123,7 +122,7 @@ namespace Thingie.Tracking
 
         internal TrackingConfiguration(object target, SettingsTracker tracker)
         {
-            _tracker = tracker;
+            SettingsTracker = tracker;
             this.TargetReference = new WeakReference(target);
             Properties = new HashSet<string>();
             Defaults = new Dictionary<string, object>();
@@ -131,9 +130,9 @@ namespace Thingie.Tracking
 
             ITrackingAware trackingAwareTarget = target as ITrackingAware;
             if (trackingAwareTarget != null)
-                trackingAwareTarget.InitTracking(this);
+                trackingAwareTarget.InitConfiguration(this);
 
-            IRaiseTrackingNotifier asNotify = target as IRaiseTrackingNotifier;
+            IRequestTracking asNotify = target as IRequestTracking;
             if (asNotify != null)
                 asNotify.SettingsPersistRequest += (s, e) => Persist();
         }
@@ -150,11 +149,11 @@ namespace Thingie.Tracking
                     try
                     {
                         object currentValue = property.GetValue(TargetReference.Target, null);
-                        _tracker.ObjectStore.Persist(currentValue, propKey);
+                        SettingsTracker.ObjectStore.Persist(currentValue, propKey);
                     }
                     catch
                     {
-                        Debug.WriteLine("Persisting of value '{propKey}' failed!");
+                        Trace.WriteLine("Persisting of value '{propKey}' failed!");
                     }
                 }
 
@@ -163,33 +162,31 @@ namespace Thingie.Tracking
         }
 
         bool _applied = false;
-        [DebuggerHidden]
+        //[DebuggerHidden]
         public void Apply()
         {
-            Stopwatch sw = new Stopwatch();
-
             if (TargetReference.IsAlive && OnApplyingState())
             {
                 foreach (string propertyName in Properties)
                 {
-                    sw.Restart();
                     PropertyInfo property = TargetReference.Target.GetType().GetProperty(propertyName);
                     string propKey = ConstructPropertyKey(property.Name);
-                    try
+                    
+                    if (SettingsTracker.ObjectStore.ContainsKey(propKey))
                     {
-                        if (_tracker.ObjectStore.ContainsKey(propKey))
+                        try
                         {
-                            object storedValue = _tracker.ObjectStore.Retrieve(propKey);
+                            object storedValue = SettingsTracker.ObjectStore.Retrieve(propKey);
                             property.SetValue(TargetReference.Target, storedValue, null);
                         }
-                        else if (Defaults.ContainsKey(propKey))
+                        catch (Exception ex)
                         {
-                            property.SetValue(TargetReference.Target, Defaults[propKey], null);
+                            Trace.WriteLine(string.Format("TRACKING: Applying tracking to property with key='{0}' failed. ExceptionType:'{1}', message: '{2}'!", propKey, ex.GetType().Name, ex.Message));
                         }
                     }
-                    catch (Exception ex)
+                    else if (Defaults.ContainsKey(propKey))
                     {
-                        Debug.WriteLine(string.Format("TRACKING: Applying tracking to property with key='{0}' failed. ExceptionType:'{1}', message: '{2}'!", propKey, ex.GetType().Name, ex.Message));
+                        property.SetValue(TargetReference.Target, Defaults[propKey], null);
                     }
                 }
 
@@ -268,7 +265,7 @@ namespace Thingie.Tracking
         private TrackingConfiguration AddMetaData()
         {
             Type t = TargetReference.Target.GetType();
-            TypeTrackingMetaData metadata = GetTypeData(t, _tracker != null ? _tracker.Name : null);
+            TypeTrackingMetaData metadata = GetTypeData(t, SettingsTracker != null ? SettingsTracker.Name : null);
 
             if (!string.IsNullOrEmpty(metadata.KeyPropertyName))
                 Key = t.GetProperty(metadata.KeyPropertyName).GetValue(TargetReference.Target, null).ToString();
@@ -344,7 +341,7 @@ namespace Thingie.Tracking
                 string propKey = ConstructPropertyKey(propertyName);
                 try
                 {
-                    _tracker.ObjectStore.Remove(propKey);
+                    SettingsTracker.ObjectStore.Remove(propKey);
                 }
                 catch (Exception ex)
                 {

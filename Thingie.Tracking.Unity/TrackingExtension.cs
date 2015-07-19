@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.Practices.Unity;
 using Microsoft.Practices.ObjectBuilder2;
 using Microsoft.Practices.Unity.ObjectBuilder;
-using Thingie.Tracking.Attributes;
+using Thingie.Tracking.Description;
 
 namespace Thingie.Tracking.Unity
 {
