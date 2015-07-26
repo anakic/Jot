@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
-namespace Thingie.Tracking
+namespace Thingie.Tracking.Configuration
 {
     public class TrackingOperationEventArgs : CancelEventArgs
     {

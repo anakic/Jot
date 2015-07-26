@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage
+namespace Thingie.Tracking.Persistent.SerializedStorage
 {
     public class IsolatedStorageStore : XmlStoreBase
     {
@@ -18,14 +18,14 @@ namespace Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage
 
         protected override string Read()
         {
-            using (var stream = _file.OpenFile("settings", FileMode.Open))
+            using (var stream = _file.OpenFile("state", FileMode.Open))
             using (StreamReader reader = new StreamReader(stream))
                 return reader.ReadToEnd();
         }
 
         protected override void Save(string contents)
         {
-            using (var stream = _file.OpenFile("settings", FileMode.Create))
+            using (var stream = _file.OpenFile("state", FileMode.Create))
             using (StreamWriter writer = new StreamWriter(stream))
                 writer.Write(contents);
         }

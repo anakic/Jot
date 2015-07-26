@@ -28,7 +28,7 @@ namespace TestWinForms
             var trackingConfig = Services.Tracker.Configure(this)
                 .AddProperties<Form>(f => f.Height, f => f.Width, f => f.Top, f => f.Left, f => f.WindowState)
                 .RegisterPersistTrigger("ResizeEnd")
-                .SetId(this.Name);
+                .IdentifyAs(this.Name);
             trackingConfig.PersistingProperty += (sender, args) => { args.Cancel = WindowState == FormWindowState.Minimized; };
 
             trackingConfig.Apply();

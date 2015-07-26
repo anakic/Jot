@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage
+namespace Thingie.Tracking.Persistent.SerializedStorage
 {
     public abstract class XmlStoreBase : IDataStore
     {

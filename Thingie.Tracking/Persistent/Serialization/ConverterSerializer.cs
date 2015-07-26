@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Thingie.Tracking.DefaultObjectStoreUtil.Serialization
+namespace Thingie.Tracking.Persistent.Serialization
 {
     public class ConverterSerializer : ISerializer
     {

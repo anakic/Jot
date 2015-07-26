@@ -7,8 +7,8 @@ using System.IO;
 using TestWPFWithUnity.Settings;
 using Thingie.Tracking;
 using Tracking.Tracking.Unity.Web.Desktop;
-using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
-using Thingie.Tracking.DefaultObjectStoreUtil.Serialization;
+using Thingie.Tracking.Persistent.SerializedStorage;
+using Thingie.Tracking.Persistent.Serialization;
 using Thingie.Tracking.SessionEndNotification;
 
 namespace TestWPFWithUnity
@@ -25,8 +25,12 @@ namespace TestWPFWithUnity
         public void Initialize()
         {
             _container.RegisterInstance(SettingsTracker.CreateTrackerForDesktop());
-            _container.RegisterType<AppSettings>(new ContainerControlledLifetimeManager());//only one AppSettings object
-            _container.AddExtension(new WPFTrackingExtension());//adds automatic tracking for all objects that can describe how they want to be persisted, as well as all WPF windows
+
+            //only one AppSettings object
+            _container.RegisterType<AppSettings>(new ContainerControlledLifetimeManager());
+
+            //adds automatic tracking have [Trackable] attribute, or implement ITrackable + all WPF windows
+            _container.AddExtension(new WPFTrackingExtension());
         }
     }
 }

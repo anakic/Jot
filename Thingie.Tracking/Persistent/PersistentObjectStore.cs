@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Thingie.Tracking.DefaultObjectStoreUtil.Serialization;
-using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
+using Thingie.Tracking.Persistent.Serialization;
+using Thingie.Tracking.Persistent.SerializedStorage;
 
-namespace Thingie.Tracking.DefaultObjectStoreUtil
+namespace Thingie.Tracking.Persistent
 {
-    public class DefaultObjectStore : IObjectStore
+    public class PersistentObjectStore : IObjectStore
     {
         public IDataStore DataStore { get; private set; }
         public ISerializer Serializer { get; private set; }
@@ -16,7 +16,7 @@ namespace Thingie.Tracking.DefaultObjectStoreUtil
 
         Dictionary<string, object> _createdInstances = new Dictionary<string, object>();
 
-        public DefaultObjectStore(IDataStore dataStore, ISerializer serializer)
+        public PersistentObjectStore(IDataStore dataStore, ISerializer serializer)
         {
             DataStore = dataStore;
             Serializer = serializer;

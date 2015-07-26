@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.Practices.Unity;
 using Microsoft.Practices.ObjectBuilder2;
 using Microsoft.Practices.Unity.ObjectBuilder;
-using Thingie.Tracking.Description;
+using Thingie.Tracking.Configuration;
 
 namespace Thingie.Tracking.Unity
 {
@@ -36,7 +36,6 @@ namespace Thingie.Tracking.Unity
                 if (!_trackabilityCache.ContainsKey(targetType))
                     _trackabilityCache[targetType] = 
                         targetType.GetInterfaces().Contains(typeof(ITrackingAware)) || 
-                        targetType.IsDefined(typeof(TrackableAttribute), true) || 
                         targetType.GetProperties().Any(p => p.GetCustomAttributes(true).OfType<TrackableAttribute>().Count() > 0);
 
                 if (_trackabilityCache[targetType])

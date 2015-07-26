@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Thingie.Tracking.Description
+namespace Thingie.Tracking.Configuration
 {
     /// <summary>
     /// If applied to a property specifies if the property should be tracked.

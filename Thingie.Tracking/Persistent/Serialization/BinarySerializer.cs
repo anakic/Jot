@@ -5,7 +5,7 @@ using System.Text;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
-namespace Thingie.Tracking.DefaultObjectStoreUtil.Serialization
+namespace Thingie.Tracking.Persistent.Serialization
 {
     public class BinarySerializer : ISerializer
     {

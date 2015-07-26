@@ -6,17 +6,18 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.ComponentModel;
-using Thingie.Tracking.Description;
+using Thingie.Tracking.SessionEndNotification;
 
-namespace Thingie.Tracking
+namespace Thingie.Tracking.Configuration
 {
     public sealed class TrackingConfiguration
     {
         public SettingsTracker SettingsTracker { get; private set; }
 
         public string Key { get; set; }
-        public Dictionary<string, TrackedPropertyDescriptor> Defaults { get; set; }//todo: add DefaultValue property to trackable attribute
+        public Dictionary<string, TrackedPropertyDescriptor> TrackedProperties { get; set; }//todo: add DefaultValue property to trackable attribute
         public WeakReference TargetReference { get; private set; }
+        public bool AutoPersistEnabled { get; set; }
 
         #region apply/persist events
 
@@ -64,30 +65,31 @@ namespace Thingie.Tracking
         {
             SettingsTracker = tracker;
             this.TargetReference = new WeakReference(target);
-            Defaults = new Dictionary<string, TrackedPropertyDescriptor>();
+            TrackedProperties = new Dictionary<string, TrackedPropertyDescriptor>();
+            AutoPersistEnabled = true;
             AddMetaData();
 
             ITrackingAware trackingAwareTarget = target as ITrackingAware;
             if (trackingAwareTarget != null)
                 trackingAwareTarget.InitConfiguration(this);
 
-            INotifyPersistenceRequired asNotify = target as INotifyPersistenceRequired;
+            ITriggerPersist asNotify = target as ITriggerPersist;
             if (asNotify != null)
-                asNotify.PersistenceRequired += (s, e) => Persist();
+                asNotify.PersistRequired += (s, e) => Persist();
         }
 
         public void Persist()
         {
             if (TargetReference.IsAlive)
             {
-                foreach (string propertyName in Defaults.Keys)
+                foreach (string propertyName in TrackedProperties.Keys)
                 {
                     if (OnPersistingState(propertyName) == false)
                         continue;
 
                     try
                     {
-                        SettingsTracker.ObjectStore.Persist(Defaults[propertyName].Getter(TargetReference.Target), ConstructPropertyKey(propertyName));
+                        SettingsTracker.ObjectStore.Persist(TrackedProperties[propertyName].Getter(TargetReference.Target), ConstructPropertyKey(propertyName));
                     }
                     catch (Exception ex)
                     {
@@ -104,13 +106,13 @@ namespace Thingie.Tracking
         {
             if (TargetReference.IsAlive)
             {
-                foreach (string propertyName in Defaults.Keys)
+                foreach (string propertyName in TrackedProperties.Keys)
                 {
                     if (OnApplyingState(propertyName) == false)
                         continue;
 
                     string key = ConstructPropertyKey(propertyName);
-                    TrackedPropertyDescriptor descriptor = Defaults[propertyName];
+                    TrackedPropertyDescriptor descriptor = TrackedProperties[propertyName];
 
                     if (SettingsTracker.ObjectStore.ContainsKey(key))
                     {
@@ -122,6 +124,8 @@ namespace Thingie.Tracking
                         catch (Exception ex)
                         {
                             Trace.WriteLine(string.Format("TRACKING: Applying tracking to property with key='{0}' failed. ExceptionType:'{1}', message: '{2}'!", key, ex.GetType().Name, ex.Message));
+                            if(descriptor.IsDefaultSpecified)
+                                descriptor.Setter(TargetReference.Target, descriptor.DefaultValue);
                         }
                     }
                     else if (descriptor.IsDefaultSpecified)
@@ -138,7 +142,7 @@ namespace Thingie.Tracking
         public TrackingConfiguration AddProperties(params string[] properties)
         {
             foreach (string property in properties)
-                Defaults[property] = CreateDescriptor(property, false, null);
+                TrackedProperties[property] = CreateDescriptor(property, false, null);
             return this;
         }
         public TrackingConfiguration AddProperties<T>(params Expression<Func<T, object>>[] properties)
@@ -152,17 +156,28 @@ namespace Thingie.Tracking
             AddProperty(GetPropertyNameFromExpression(property), defaultValue);
             return this;
         }
+        public TrackingConfiguration AddProperty<T>(Expression<Func<T, object>> property)
+        {
+            AddProperty(GetPropertyNameFromExpression(property));
+            return this;
+        }
 
         public TrackingConfiguration AddProperty(string property, object defaultValue)
         {
-            Defaults[property] = CreateDescriptor(property, true, defaultValue);
+            TrackedProperties[property] = CreateDescriptor(property, true, defaultValue);
+            return this;
+        }
+
+        public TrackingConfiguration AddProperty(string property)
+        {
+            TrackedProperties[property] = CreateDescriptor(property, false, null);
             return this;
         }
 
         public TrackingConfiguration RemoveProperties(params string[] properties)
         {
             foreach (string property in properties)
-                Defaults.Remove(property);
+                TrackedProperties.Remove(property);
             return this;
         }
         public TrackingConfiguration RemoveProperties<T>(params Expression<Func<T, object>>[] properties)
@@ -195,9 +210,15 @@ namespace Thingie.Tracking
             return this;
         }
 
-        public TrackingConfiguration SetId(string key)
+        public TrackingConfiguration IdentifyAs(string key)
         {
             this.Key = key;
+            return this;
+        }
+
+        public TrackingConfiguration SetAutoPersistEnabled(bool shouldAutoPersist)
+        {
+            AutoPersistEnabled = shouldAutoPersist;
             return this;
         }
 
@@ -220,12 +241,11 @@ namespace Thingie.Tracking
                 {
                     DefaultValueAttribute defaultAtt = pi.CustomAttributes.OfType<DefaultValueAttribute>().SingleOrDefault();
                     if (defaultAtt != null)
-                        Defaults[pi.Name] = CreateDescriptor(pi.Name, true, defaultAtt.Value);
+                        TrackedProperties[pi.Name] = CreateDescriptor(pi.Name, true, defaultAtt.Value);
                     else
-                        Defaults[pi.Name] = CreateDescriptor(pi.Name, false, null);
+                        TrackedProperties[pi.Name] = CreateDescriptor(pi.Name, false, null);
                 }
             }
-
             return this;
         }
 
@@ -241,7 +261,7 @@ namespace Thingie.Tracking
 
         public TrackingConfiguration ClearSavedState()
         {
-            foreach (string propertyName in Defaults.Keys)
+            foreach (string propertyName in TrackedProperties.Keys)
             {
                 string key = ConstructPropertyKey(propertyName);
                 try

@@ -7,9 +7,10 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Web;
 using System.IO;
-using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
-using Thingie.Tracking.DefaultObjectStoreUtil.Serialization;
-using Thingie.Tracking.DefaultObjectStoreUtil;
+using Thingie.Tracking.Configuration;
+using Thingie.Tracking.Persistent.SerializedStorage;
+using Thingie.Tracking.Persistent.Serialization;
+using Thingie.Tracking.Persistent;
 using Thingie.Tracking.SessionEndNotification;
 
 namespace Thingie.Tracking
@@ -20,20 +21,15 @@ namespace Thingie.Tracking
 
         public string Name { get; set; }
         public IObjectStore ObjectStore { get; set; }
-        public ISessionEndNotifier SessionEndNotifier { get; set; }
+        public ITriggerPersist AutoPersistTrigger { get; set; }
 
-        public SettingsTracker(IDataStore store, ISerializer serializer, ISessionEndNotifier sessionEndNotifier)
-            : this(new DefaultObjectStore(store, serializer), sessionEndNotifier)
-        {
-        }
-
-        public SettingsTracker(IObjectStore objectStore, ISessionEndNotifier sessionEndNotifier)
+        public SettingsTracker(IObjectStore objectStore, ITriggerPersist globalAutoPersistTrigger)
         {
             ObjectStore = objectStore;
-            SessionEndNotifier = sessionEndNotifier;
+            AutoPersistTrigger = globalAutoPersistTrigger;
 
-            if (SessionEndNotifier != null)
-                SessionEndNotifier.SessionEnd += (s, e) => PersistAll();
+            if (AutoPersistTrigger != null)
+                AutoPersistTrigger.PersistRequired += (s, e) => RunAutoPersist();
         }
 
         /// <summary>
@@ -54,9 +50,9 @@ namespace Thingie.Tracking
             _configurations.ForEach(c => c.Apply());
         }
 
-        public void PersistAll()
+        public void RunAutoPersist()
         {
-            foreach (TrackingConfiguration config in _configurations.Where(cfg => cfg.TargetReference.IsAlive))
+            foreach (TrackingConfiguration config in _configurations.Where(cfg => cfg.AutoPersistEnabled && cfg.TargetReference.IsAlive))
                 config.Persist();
         }
 
@@ -70,7 +66,7 @@ namespace Thingie.Tracking
         #endregion
 
         #region convenience methods for constructing a SettingsTracker
-    
+
         public static SettingsTracker CreateTrackerForDesktop()
         {
             return CreateTrackerForDesktop(Environment.SpecialFolder.ApplicationData);
@@ -78,8 +74,9 @@ namespace Thingie.Tracking
 
         public static SettingsTracker CreateTrackerForDesktop(Environment.SpecialFolder folder)
         {
-            return new SettingsTracker(new FileStore(folder), new JsonSerializer(), new DesktopSessionEndNotifier());
+            return new SettingsTracker(new PersistentObjectStore(new FileStore(folder), new JsonSerializer()), new DesktopPersistTrigger());
         }
+
         #endregion
     }
 }

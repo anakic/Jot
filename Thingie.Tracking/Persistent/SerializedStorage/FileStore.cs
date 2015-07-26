@@ -7,7 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.IO.IsolatedStorage;
 
-namespace Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage
+namespace Thingie.Tracking.Persistent.SerializedStorage
 {
     public class FileStore : XmlStoreBase
     {
@@ -62,12 +62,12 @@ namespace Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage
                     appNamePart = string.Format("{0}\\", titleAttribute.Title);
             }
 
-            string settingsFilePath = Path.Combine(
+            string backingFilePath = Path.Combine(
                 Environment.GetFolderPath(baseFolder),
                 string.Format(@"{0}{1}tracked_settings.xml", companyPart, appNamePart)
             );
 
-            return settingsFilePath;
+            return backingFilePath;
         }
         #endregion
     }

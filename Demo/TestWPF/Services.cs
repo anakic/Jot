@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using Thingie.Tracking;
-using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
-using Thingie.Tracking.DefaultObjectStoreUtil.Serialization;
+using Thingie.Tracking.Persistent.SerializedStorage;
+using Thingie.Tracking.Persistent.Serialization;
 
 namespace TestWPF
 {

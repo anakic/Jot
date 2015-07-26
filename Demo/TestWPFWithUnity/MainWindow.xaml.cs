@@ -13,23 +13,15 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TestWPFWithUnity.Settings;
 using Thingie.Tracking;
-using Thingie.Tracking.Description;
+using Thingie.Tracking.Configuration;
 
 namespace TestWPFWithUnity
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, ITrackingAware
     {
-        //expose selected tab index to the settingstracker
-        [Trackable]
-        public int SelectedTabIndex
-        {
-            get { return tabControl.SelectedIndex; }
-            set { tabControl.SelectedIndex = value; }
-        }
-
         public MainWindow(AppSettings settings)
         {
             //nothing is needed here to set up tracking of the window
@@ -37,6 +29,12 @@ namespace TestWPFWithUnity
 
             InitializeComponent();
             this.DataContext = settings;
+        }
+
+        public void InitConfiguration(TrackingConfiguration configuration)
+        {
+            configuration.SettingsTracker.Configure(tabControl).AddProperties<TabControl>(tc=>tc.SelectedIndex).Apply();
+            configuration.SettingsTracker.Configure(col).AddProperties<ColumnDefinition>(tc => tc.Width).Apply();
         }
     }
 }

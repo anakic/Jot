@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Thingie.Tracking
+namespace Thingie.Tracking.Configuration
 {
     public class TrackedPropertyDescriptor
     {
@@ -13,12 +13,12 @@ namespace Thingie.Tracking
         public bool IsDefaultSpecified { get; private set; }
         public object DefaultValue { get; private set; }
 
-        public TrackedPropertyDescriptor(Func<object, object> getter, Action<object, object> setter)
+        internal TrackedPropertyDescriptor(Func<object, object> getter, Action<object, object> setter)
             : this(getter, setter, false, null)
         {
         }
 
-        public TrackedPropertyDescriptor(Func<object, object> getter, Action<object, object> setter, bool isDefaultSpecified, object defaultValue)
+        internal TrackedPropertyDescriptor(Func<object, object> getter, Action<object, object> setter, bool isDefaultSpecified, object defaultValue)
         {
             Getter = getter;
             Setter = setter;

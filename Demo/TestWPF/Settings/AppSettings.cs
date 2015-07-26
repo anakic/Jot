@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using System.Drawing;
-using Thingie.Tracking.Description;
+using Thingie.Tracking.Configuration;
 
 namespace TestWPF.Settings
 {

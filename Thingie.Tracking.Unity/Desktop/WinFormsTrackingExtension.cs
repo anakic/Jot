@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Thingie.Tracking;
+using Thingie.Tracking.Configuration;
 using Thingie.Tracking.Unity;
 
 namespace Tracking.Tracking.Unity.Web.Desktop

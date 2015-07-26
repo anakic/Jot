@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Thingie.Tracking.DefaultObjectStoreUtil.Serialization
+namespace Thingie.Tracking.Persistent.Serialization
 {
     public class JsonSerializer : ISerializer
     {

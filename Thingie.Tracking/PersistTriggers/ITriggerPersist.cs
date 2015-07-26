@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Thingie.Tracking.SessionEndNotification
 {
-    public interface ISessionEndNotifier
+    public interface ITriggerPersist
     {
-        event EventHandler SessionEnd;
+        event EventHandler PersistRequired;
     }
 }

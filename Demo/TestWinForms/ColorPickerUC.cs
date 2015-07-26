@@ -6,7 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using Thingie.Tracking.Description;
+using Thingie.Tracking.Configuration;
 
 namespace TestWinForms
 {
@@ -47,9 +47,9 @@ namespace TestWinForms
             pnlSample.BackColor = Color.FromArgb(255, tbRed.Value, tbGreen.Value, tbBlue.Value);
         }
 
-        public void InitConfiguration(Thingie.Tracking.TrackingConfiguration configuration)
+        public void InitConfiguration(TrackingConfiguration configuration)
         {
-            configuration.SetId(this.Name);
+            configuration.IdentifyAs(this.Name);
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml.Linq;
 using System.IO;
 
-namespace Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage
+namespace Thingie.Tracking.Persistent.SerializedStorage
 {
     public class StoreData
     {

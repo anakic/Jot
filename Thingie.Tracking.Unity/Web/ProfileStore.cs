@@ -5,7 +5,7 @@ using System.Text;
 using System.Web;
 using System.Runtime.Serialization;
 using System.Web.Profile;
-using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
+using Thingie.Tracking.Persistent.SerializedStorage;
 
 namespace Thingie.Tracking.Unity.Web
 {

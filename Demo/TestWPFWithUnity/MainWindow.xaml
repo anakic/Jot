@@ -12,7 +12,7 @@
                 <TabItem Header="General settings" DataContext="{Binding GeneralSettings}">
                     <Grid VerticalAlignment="Top">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" x:Name="col"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -25,6 +25,7 @@
                         <Label Content="Property2 (string)" Grid.Row="1" Grid.Column="0"/>
                         <TextBox Text="{Binding Property2}"  Grid.Row="1" Grid.Column="1"/>
                         <CheckBox IsChecked="{Binding Property3}" Grid.Row="2" Grid.ColumnSpan="2" Content="Property3 (bool)" Margin="5"/>
+                        <GridSplitter Width="5" HorizontalAlignment="Right" Grid.RowSpan="3"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Display settings" DataContext="{Binding DisplaySettings}">

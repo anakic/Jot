@@ -6,8 +6,9 @@ using System.Web;
 using Microsoft.Practices.Unity;
 using System.Web.SessionState;
 using System.Web.UI;
-using Thingie.Tracking.DefaultObjectStoreUtil.Serialization;
-using Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage;
+using Thingie.Tracking.Persistent.Serialization;
+using Thingie.Tracking.Persistent.SerializedStorage;
+using Thingie.Tracking.Persistent;
 
 namespace Thingie.Tracking.Unity.Web
 {
@@ -71,9 +72,9 @@ namespace Thingie.Tracking.Unity.Web
         protected virtual void RegisterTrackers(IUnityContainer container)
         {
             //session level tracker - for properties with [Trackable(Name="SESSION")]
-            _container.RegisterType<SettingsTracker>(AspNetTrackerNames.SESSION, new SessionLifetimeManager(), new InjectionFactory(iocCont => new SettingsTracker(new SessionStore(), new BinarySerializer(), null) { Name = AspNetTrackerNames.SESSION }));
+            _container.RegisterType<SettingsTracker>(AspNetTrackerNames.SESSION, new SessionLifetimeManager(), new InjectionFactory(iocCont => new SettingsTracker(new PersistentObjectStore(new SessionStore(), new BinarySerializer()), null) { Name = AspNetTrackerNames.SESSION }));
             //user level tracker - for properties with [Trackable(Name="USER")]
-            _container.RegisterType<SettingsTracker>(AspNetTrackerNames.USERPROFILE, new RequestLifetimeManager(), new InjectionFactory(c => new SettingsTracker(new ProfileStore(), new BinarySerializer(), null) { Name = AspNetTrackerNames.USERPROFILE }));
+            _container.RegisterType<SettingsTracker>(AspNetTrackerNames.USERPROFILE, new RequestLifetimeManager(), new InjectionFactory(c => new SettingsTracker(new PersistentObjectStore(new ProfileStore(), new BinarySerializer()), null) { Name = AspNetTrackerNames.USERPROFILE }));
         }
 
         void context_PreRequestHandlerExecute(object sender, EventArgs e)
@@ -96,11 +97,11 @@ namespace Thingie.Tracking.Unity.Web
             {
                 //named trackers
                 foreach (SettingsTracker tracker in _container.ResolveAll<SettingsTracker>())
-                    tracker.PersistAll();
+                    tracker.RunAutoPersist();
 
                 //unnamed tracker
                 if (_container.IsRegistered<SettingsTracker>())
-                    _container.Resolve<SettingsTracker>().PersistAll();
+                    _container.Resolve<SettingsTracker>().RunAutoPersist();
             }
         }
 

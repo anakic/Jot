@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Web;
 
-namespace Thingie.Tracking.DefaultObjectStoreUtil.SerializedStorage
+namespace Thingie.Tracking.Persistent.SerializedStorage
 {
     public class SessionStore : IDataStore
     {

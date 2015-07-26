@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Thingie.Tracking.Description
+namespace Thingie.Tracking.Configuration
 {
     /// <summary>
     /// Allows the object that is being tracked to customize
