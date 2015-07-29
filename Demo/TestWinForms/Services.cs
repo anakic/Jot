@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using Thingie.Tracking;
+using Eidetic;
 using System.IO.IsolatedStorage;
-using Thingie.Tracking.Persistent.SerializedStorage;
-using Thingie.Tracking.Persistent.Serialization;
-using Thingie.Tracking.SessionEndNotification;
-using Thingie.Tracking.Persistent;
+using Eidetic.Persistent.SerializedStorage;
+using Eidetic.Persistent.Serialization;
+using Eidetic.SessionEndNotification;
+using Eidetic.Persistent;
 
 namespace TestWinForms
 {

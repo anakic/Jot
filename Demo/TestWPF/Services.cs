@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using Thingie.Tracking;
-using Thingie.Tracking.Persistent.SerializedStorage;
-using Thingie.Tracking.Persistent.Serialization;
+using Eidetic;
+using Eidetic.Persistent.SerializedStorage;
+using Eidetic.Persistent.Serialization;
 
 namespace TestWPF
 {

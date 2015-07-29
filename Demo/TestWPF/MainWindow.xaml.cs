@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TestWPF.Settings;
-using Thingie.Tracking;
+using Eidetic;
 
 namespace TestWPF
 {

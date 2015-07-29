@@ -6,7 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using Thingie.Tracking.Configuration;
+using Eidetic.Configuration;
 
 namespace TestWinForms
 {

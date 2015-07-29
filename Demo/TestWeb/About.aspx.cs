@@ -6,8 +6,8 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Microsoft.Practices.Unity;
 using System.Diagnostics;
-using Thingie.Tracking;
-using Thingie.Tracking.Configuration;
+using Eidetic;
+using Eidetic.Configuration;
 
 namespace TestWeb
 {

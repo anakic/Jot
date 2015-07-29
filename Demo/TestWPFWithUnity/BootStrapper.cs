@@ -5,11 +5,11 @@ using System.Text;
 using Microsoft.Practices.Unity;
 using System.IO;
 using TestWPFWithUnity.Settings;
-using Thingie.Tracking;
+using Eidetic;
 using Tracking.Tracking.Unity.Web.Desktop;
-using Thingie.Tracking.Persistent.SerializedStorage;
-using Thingie.Tracking.Persistent.Serialization;
-using Thingie.Tracking.SessionEndNotification;
+using Eidetic.Persistent.SerializedStorage;
+using Eidetic.Persistent.Serialization;
+using Eidetic.SessionEndNotification;
 
 namespace TestWPFWithUnity
 {

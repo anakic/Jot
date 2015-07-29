@@ -1,7 +1,7 @@
 ﻿using System;
-using Thingie.Tracking;
-using Thingie.Tracking.Configuration;
-using Thingie.Tracking.Unity.Web;
+using Eidetic;
+using Eidetic.Configuration;
+using Eidetic.Unity.Web;
 
 namespace TestWeb
 {

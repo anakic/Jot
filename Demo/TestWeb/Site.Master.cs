@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Thingie.Tracking.Configuration;
+using Eidetic.Configuration;
 
 namespace TestWeb
 {

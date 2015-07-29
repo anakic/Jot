@@ -12,8 +12,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TestWPFWithUnity.Settings;
-using Thingie.Tracking;
-using Thingie.Tracking.Configuration;
+using Eidetic;
+using Eidetic.Configuration;
 
 namespace TestWPFWithUnity
 {

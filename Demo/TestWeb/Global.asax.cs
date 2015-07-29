@@ -5,9 +5,9 @@ using System.Web;
 using System.Web.Security;
 using System.Web.SessionState;
 using Microsoft.Practices.Unity;
-using Thingie.Tracking;
-using Thingie.Tracking.Unity;
-using Thingie.Tracking.Unity.Web;
+using Eidetic;
+using Eidetic.Unity;
+using Eidetic.Unity.Web;
 
 namespace TestWeb
 {
