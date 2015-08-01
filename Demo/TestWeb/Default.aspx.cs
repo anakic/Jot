@@ -1,7 +1,7 @@
 ﻿using System;
-using Eidetic;
-using Eidetic.Configuration;
-using Eidetic.Unity.Web;
+using Ursus;
+using Ursus.Configuration;
+using Ursus.Unity.Web;
 
 namespace TestWeb
 {

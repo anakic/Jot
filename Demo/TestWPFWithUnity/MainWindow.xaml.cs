@@ -12,8 +12,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TestWPFWithUnity.Settings;
-using Eidetic;
-using Eidetic.Configuration;
+using Ursus;
+using Ursus.Configuration;
 
 namespace TestWPFWithUnity
 {

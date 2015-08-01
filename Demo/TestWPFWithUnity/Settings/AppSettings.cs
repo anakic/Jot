@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ComponentModel;
-using Eidetic;
-using Eidetic.Configuration;
+using Ursus;
+using Ursus.Configuration;
 
 namespace TestWPFWithUnity.Settings
 {

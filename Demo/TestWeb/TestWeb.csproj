@@ -170,13 +170,13 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Eidetic.Unity\Eidetic.Unity.csproj">
+    <ProjectReference Include="..\..\Ursus.Unity\Ursus.Unity.csproj">
       <Project>{ebe4f9fe-a73a-4651-92f9-8c04e2d21385}</Project>
-      <Name>Eidetic.Unity</Name>
+      <Name>Ursus.Unity</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Eidetic\Eidetic.csproj">
+    <ProjectReference Include="..\..\Ursus\Ursus.csproj">
       <Project>{e9bc6e7e-b7c2-40ea-83e8-52ba07f6d9d6}</Project>
-      <Name>Eidetic</Name>
+      <Name>Ursus</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

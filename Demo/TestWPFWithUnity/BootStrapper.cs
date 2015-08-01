@@ -5,11 +5,11 @@ using System.Text;
 using Microsoft.Practices.Unity;
 using System.IO;
 using TestWPFWithUnity.Settings;
-using Eidetic;
+using Ursus;
 using Tracking.Tracking.Unity.Web.Desktop;
-using Eidetic.Persistent.SerializedStorage;
-using Eidetic.Persistent.Serialization;
-using Eidetic.SessionEndNotification;
+using Ursus.Persistent.SerializedStorage;
+using Ursus.Persistent.Serialization;
+using Ursus.SessionEndNotification;
 
 namespace TestWPFWithUnity
 {
@@ -24,7 +24,7 @@ namespace TestWPFWithUnity
 
         public void Initialize()
         {
-            _container.RegisterInstance(SettingsTracker.CreateTrackerForDesktop());
+            _container.RegisterInstance(StateTracker.CreateTrackerForDesktop());
 
             //only one AppSettings object
             _container.RegisterType<AppSettings>(new ContainerControlledLifetimeManager());

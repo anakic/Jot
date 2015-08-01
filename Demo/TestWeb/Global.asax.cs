@@ -5,9 +5,9 @@ using System.Web;
 using System.Web.Security;
 using System.Web.SessionState;
 using Microsoft.Practices.Unity;
-using Eidetic;
-using Eidetic.Unity;
-using Eidetic.Unity.Web;
+using Ursus;
+using Ursus.Unity;
+using Ursus.Unity.Web;
 
 namespace TestWeb
 {

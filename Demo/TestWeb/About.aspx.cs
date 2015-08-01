@@ -6,8 +6,8 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Microsoft.Practices.Unity;
 using System.Diagnostics;
-using Eidetic;
-using Eidetic.Configuration;
+using Ursus;
+using Ursus.Configuration;
 
 namespace TestWeb
 {
