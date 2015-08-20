@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Ursus
+namespace Ursus.Storage
 {
     /// <summary>
     /// Implementors of this interface delare that they can store and retrieve arbitrary objects. 

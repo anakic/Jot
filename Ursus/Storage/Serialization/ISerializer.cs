@@ -6,7 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.ComponentModel;
 
-namespace Ursus.Persistent.Serialization
+namespace Ursus.Storage.Serialization
 {
     public interface ISerializer
     {

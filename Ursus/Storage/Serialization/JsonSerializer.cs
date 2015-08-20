@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Ursus.Persistent.Serialization
+namespace Ursus.Storage.Serialization
 {
     public class JsonSerializer : ISerializer
     {

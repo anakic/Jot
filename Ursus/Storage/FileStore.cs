@@ -7,7 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.IO.IsolatedStorage;
 
-namespace Ursus.Persistent.SerializedStorage
+namespace Ursus.Storage
 {
     public class FileStore : XmlStoreBase
     {
@@ -32,7 +32,7 @@ namespace Ursus.Persistent.SerializedStorage
                 Directory.CreateDirectory(directory);
         }
 
-        protected override string Read()
+        protected override string GetXml()
         {
             if (File.Exists(FilePath))
                 return File.ReadAllText(FilePath);
@@ -40,7 +40,7 @@ namespace Ursus.Persistent.SerializedStorage
                 return null;
         }
 
-        protected override void Save(string contents)
+        protected override void SaveXML(string contents)
         {
             File.WriteAllText(FilePath, contents);
         }

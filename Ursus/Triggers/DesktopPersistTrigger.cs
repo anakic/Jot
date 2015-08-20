@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ursus.SessionEndNotification
+namespace Ursus.Triggers
 {
     public class DesktopPersistTrigger : ITriggerPersist
     {

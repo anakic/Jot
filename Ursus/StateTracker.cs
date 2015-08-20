@@ -8,10 +8,9 @@ using System.Reflection;
 using System.Web;
 using System.IO;
 using Ursus.Configuration;
-using Ursus.Persistent.SerializedStorage;
-using Ursus.Persistent.Serialization;
-using Ursus.Persistent;
-using Ursus.SessionEndNotification;
+using Ursus.Storage;
+using Ursus.Storage.Serialization;
+using Ursus.Triggers;
 
 namespace Ursus
 {
@@ -82,7 +81,7 @@ namespace Ursus
         /// <returns></returns>
         public static StateTracker CreateTrackerForDesktop(Environment.SpecialFolder folder)
         {
-            return new StateTracker(new PersistentObjectStore(new FileStore(folder), new JsonSerializer()), new DesktopPersistTrigger());
+            return new StateTracker(new FileStore(folder), new DesktopPersistTrigger());
         }
 
         #endregion

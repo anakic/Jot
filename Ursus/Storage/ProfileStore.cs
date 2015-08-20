@@ -5,9 +5,8 @@ using System.Text;
 using System.Web;
 using System.Runtime.Serialization;
 using System.Web.Profile;
-using Ursus.Persistent.SerializedStorage;
 
-namespace Ursus.Persistent.SerializedStorage
+namespace Ursus.Storage
 {
     /// <summary>
     /// Since there is no option to add dynamic properties to an ASP.NET profile, 
@@ -23,7 +22,7 @@ namespace Ursus.Persistent.SerializedStorage
         protected TrackedData(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
     }
 
-    public class ProfileStore : IDataStore
+    public class ProfileStore : PersistentStoreBase
     {
         string _profileDataPropertyName = "TrackingData";
         /// <summary>
@@ -42,23 +41,23 @@ namespace Ursus.Persistent.SerializedStorage
 
         #region IDataStore Members
 
-        public bool ContainsKey(string identifier)
+        public override bool ContainsKey(string identifier)
         {
             return GetDataObject().ContainsKey(identifier);
         }
 
-        public StoreData GetData(string identifier)
+        protected override StoreData GetData(string identifier)
         {
             return GetDataObject()[identifier];
         }
 
-        public void SetData(StoreData data, string identifier)
+        protected override void SetData(StoreData data, string identifier)
         {
             GetDataObject()[identifier] = data;
             HttpContext.Current.Profile.Save();
         }
 
-        public void RemoveData(string identifier)
+        public override void Remove(string identifier)
         {
             GetDataObject().Remove(identifier);
         }

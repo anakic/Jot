@@ -5,17 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Ursus.Persistent.SerializedStorage
+namespace Ursus.Storage
 {
-    public abstract class XmlStoreBase : IDataStore
+    public abstract class XmlStoreBase : PersistentStoreBase
     {
         const string ROOT_TAG = "Data";
         const string ITEM_TAG = "Item";
         const string ID_ATTRIBUTE = "Id";
         const string TYPE_ATTRIBUTE = "Type";
 
-        protected abstract string Read();
-        protected abstract void Save(string contents);
+        protected abstract string GetXml();
+        protected abstract void SaveXML(string contents);
 
         XDocument _document;
         private XDocument Document
@@ -26,7 +26,7 @@ namespace Ursus.Persistent.SerializedStorage
                 {
                     try
                     {
-                        _document = XDocument.Parse(Read());
+                        _document = XDocument.Parse(GetXml());
                         if (_document.Element(ROOT_TAG) == null)
                             _document = null;//a corrupt store, we'll make a new one
                     }
@@ -46,7 +46,7 @@ namespace Ursus.Persistent.SerializedStorage
             }
         }
 
-        public StoreData GetData(string identifier)
+        protected override StoreData GetData(string identifier)
         {
             XElement itemElement = GetItem(identifier);
             if (itemElement == null)
@@ -55,7 +55,7 @@ namespace Ursus.Persistent.SerializedStorage
                 return new StoreData((string)itemElement.Value, Type.GetType(itemElement.Attribute(TYPE_ATTRIBUTE).Value));
         }
 
-        public void SetData(StoreData data, string identifier)
+        protected override void SetData(StoreData data, string identifier)
         {
             XElement itemElement = GetItem(identifier);
             if (itemElement == null)
@@ -67,10 +67,10 @@ namespace Ursus.Persistent.SerializedStorage
             itemElement.Value = data.Serialized;
             itemElement.SetAttributeValue(TYPE_ATTRIBUTE, data.OriginalType.AssemblyQualifiedName);
 
-            Save(Document.ToString());
+            SaveXML(Document.ToString());
         }
 
-        public void RemoveData(string identifier)
+        public override void Remove(string identifier)
         {
             XElement itemElement = GetItem(identifier);
             if (itemElement != null)
@@ -82,7 +82,7 @@ namespace Ursus.Persistent.SerializedStorage
             return Document.Root.Elements(ITEM_TAG).SingleOrDefault(el => (string)el.Attribute(ID_ATTRIBUTE) == identifier);
         }
 
-        public bool ContainsKey(string identifier)
+        public override bool ContainsKey(string identifier)
         {
             return GetItem(identifier) != null;
         }

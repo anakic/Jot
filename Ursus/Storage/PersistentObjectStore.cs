@@ -2,23 +2,46 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Ursus.Persistent.Serialization;
-using Ursus.Persistent.SerializedStorage;
+using Ursus.Storage.Serialization;
+using Ursus.Storage;
 
-namespace Ursus.Persistent
+namespace Ursus.Storage
 {
-    public class PersistentObjectStore : IObjectStore
+    public class StoreData
     {
-        public IDataStore DataStore { get; private set; }
+        public string Serialized { get; set; }
+        public Type OriginalType { get; set; }
+
+        public StoreData(string data, Type originalType)
+        {
+            Serialized = data;
+            OriginalType = originalType;
+        }
+
+        public static StoreData NullData = new StoreData(null, typeof(object));
+    }
+
+    public abstract class PersistentStoreBase : IObjectStore
+    {
         public ISerializer Serializer { get; private set; }
         public bool CacheObjects { get; set; }
         public bool RemoveBadData { get; set; }
 
+        public abstract bool ContainsKey(string identifier);
+        public abstract void Remove(string identifier);
+
+        protected abstract StoreData GetData(string identifier);
+        protected abstract void SetData(StoreData data, string identifier);
+
         Dictionary<string, object> _createdInstances = new Dictionary<string, object>();
 
-        public PersistentObjectStore(IDataStore dataStore, ISerializer serializer)
+        public PersistentStoreBase()
+            : this(new JsonSerializer())
+        { 
+        }
+
+        public PersistentStoreBase(ISerializer serializer)
         {
-            DataStore = dataStore;
             Serializer = serializer;
             CacheObjects = true;
             RemoveBadData = true;
@@ -28,14 +51,9 @@ namespace Ursus.Persistent
         {
             _createdInstances[key] = target;
             if (target == null)
-                DataStore.SetData(null, key);//todo: handle null in datastore
+                SetData(null, key);//todo: handle null in SetData implementations
             else
-                DataStore.SetData(new StoreData(Serializer.Serialize(target), target.GetType()), key);
-        }
-
-        public bool ContainsKey(string key)
-        {
-            return DataStore.ContainsKey(key);
+                SetData(new StoreData(Serializer.Serialize(target), target.GetType()), key);
         }
 
         public object Retrieve(string key)
@@ -44,7 +62,7 @@ namespace Ursus.Persistent
             {
                 try
                 {
-                    StoreData data = DataStore.GetData(key);
+                    StoreData data = GetData(key);
                     if (data.Serialized == null)
                         return null;
                     else
@@ -53,16 +71,11 @@ namespace Ursus.Persistent
                 catch
                 {
                     if (RemoveBadData)
-                        DataStore.RemoveData(key);
+                        Remove(key);
                     throw;
                 }
             }
             return _createdInstances[key];
-        }
-
-        public void Remove(string key)
-        {
-            DataStore.RemoveData(key);
         }
     }
 }

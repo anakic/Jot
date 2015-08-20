@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ursus.Persistent.Serialization
+namespace Ursus.Storage.Serialization
 {
     public class ConverterSerializer : ISerializer
     {

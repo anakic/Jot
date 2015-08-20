@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ursus.Persistent.SerializedStorage
+namespace Ursus.Storage
 {
     public class IsolatedStorageStore : XmlStoreBase
     {
@@ -16,14 +16,14 @@ namespace Ursus.Persistent.SerializedStorage
             _file = file;
         }
 
-        protected override string Read()
+        protected override string GetXml()
         {
             using (var stream = _file.OpenFile("state", FileMode.Open))
             using (StreamReader reader = new StreamReader(stream))
                 return reader.ReadToEnd();
         }
 
-        protected override void Save(string contents)
+        protected override void SaveXML(string contents)
         {
             using (var stream = _file.OpenFile("state", FileMode.Create))
             using (StreamWriter writer = new StreamWriter(stream))

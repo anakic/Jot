@@ -6,9 +6,8 @@ using System.Web;
 using Microsoft.Practices.Unity;
 using System.Web.SessionState;
 using System.Web.UI;
-using Ursus.Persistent.Serialization;
-using Ursus.Persistent.SerializedStorage;
-using Ursus.Persistent;
+using Ursus.Storage.Serialization;
+using Ursus.Storage;
 
 namespace Ursus.Unity.Web
 {
@@ -72,9 +71,9 @@ namespace Ursus.Unity.Web
         protected virtual void RegisterTrackers(IUnityContainer container)
         {
             //session level tracker - for properties with [Trackable(Name="SESSION")]
-            _container.RegisterType<StateTracker>(AspNetTrackerNames.SESSION, new SessionLifetimeManager(), new InjectionFactory(iocCont => new StateTracker(new PersistentObjectStore(new SessionStore(), new BinarySerializer()), null) { Name = AspNetTrackerNames.SESSION }));
+            _container.RegisterType<StateTracker>(AspNetTrackerNames.SESSION, new SessionLifetimeManager(), new InjectionFactory(iocCont => new StateTracker(new SessionStore(), null) { Name = AspNetTrackerNames.SESSION }));
             //user level tracker - for properties with [Trackable(Name="USER")]
-            _container.RegisterType<StateTracker>(AspNetTrackerNames.USERPROFILE, new RequestLifetimeManager(), new InjectionFactory(c => new StateTracker(new PersistentObjectStore(new ProfileStore(), new BinarySerializer()), null) { Name = AspNetTrackerNames.USERPROFILE }));
+            _container.RegisterType<StateTracker>(AspNetTrackerNames.USERPROFILE, new RequestLifetimeManager(), new InjectionFactory(c => new StateTracker(new ProfileStore(), null) { Name = AspNetTrackerNames.USERPROFILE }));
         }
 
         void context_PreRequestHandlerExecute(object sender, EventArgs e)

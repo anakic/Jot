@@ -7,9 +7,6 @@ using System.IO;
 using TestWPFWithUnity.Settings;
 using Ursus;
 using Tracking.Tracking.Unity.Web.Desktop;
-using Ursus.Persistent.SerializedStorage;
-using Ursus.Persistent.Serialization;
-using Ursus.SessionEndNotification;
 
 namespace TestWPFWithUnity
 {

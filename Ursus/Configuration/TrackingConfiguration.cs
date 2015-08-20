@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.ComponentModel;
-using Ursus.SessionEndNotification;
+using Ursus.Triggers;
 
 namespace Ursus.Configuration
 {

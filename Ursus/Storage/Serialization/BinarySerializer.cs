@@ -5,7 +5,7 @@ using System.Text;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
-namespace Ursus.Persistent.Serialization
+namespace Ursus.Storage.Serialization
 {
     public class BinarySerializer : ISerializer
     {
