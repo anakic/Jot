@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-//[assembly: InternalsVisibleTo("Thingie.Tracking.UnitTests")]
+//[assembly: InternalsVisibleTo("Ursus.UnitTests")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -36,4 +36,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("1.1.0.0")]
 [assembly: AssemblyFileVersion("1.1.0.0")]
 
-[assembly: InternalsVisibleTo("Thingie.Tracking.UnitTests")]
+[assembly: InternalsVisibleTo("Ursus.UnitTests")]
