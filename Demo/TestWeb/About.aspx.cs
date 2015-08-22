@@ -6,8 +6,8 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Microsoft.Practices.Unity;
 using System.Diagnostics;
-using Ursus;
-using Ursus.Configuration;
+using Jot;
+using Jot.Configuration;
 
 namespace TestWeb
 {

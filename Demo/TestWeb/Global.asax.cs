@@ -5,9 +5,9 @@ using System.Web;
 using System.Web.Security;
 using System.Web.SessionState;
 using Microsoft.Practices.Unity;
-using Ursus;
-using Ursus.Unity;
-using Ursus.Unity.Web;
+using Jot;
+using Jot.Unity;
+using Jot.Unity.Web;
 
 namespace TestWeb
 {

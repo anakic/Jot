@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using Ursus;
+using Jot;
 using System.IO.IsolatedStorage;
-using Ursus.Storage;
-using Ursus.Triggers;
+using Jot.Storage;
+using Jot.Triggers;
 
 namespace TestWinForms
 {

@@ -1,7 +1,7 @@
 ﻿using System;
-using Ursus;
-using Ursus.Configuration;
-using Ursus.Unity.Web;
+using Jot;
+using Jot.Configuration;
+using Jot.Unity.Web;
 
 namespace TestWeb
 {

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ComponentModel;
-using Ursus;
-using Ursus.Configuration;
+using Jot;
+using Jot.Configuration;
 
 namespace TestWPFWithUnity.Settings
 {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using System.Drawing;
-using Ursus.Configuration;
+using Jot.Configuration;
 
 namespace TestWPF.Settings
 {

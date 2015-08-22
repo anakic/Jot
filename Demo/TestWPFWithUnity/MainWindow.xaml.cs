@@ -12,8 +12,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TestWPFWithUnity.Settings;
-using Ursus;
-using Ursus.Configuration;
+using Jot;
+using Jot.Configuration;
 
 namespace TestWPFWithUnity
 {
@@ -26,7 +26,7 @@ namespace TestWPFWithUnity
         {
             //nothing is needed here to set up tracking of the window
             //the WPF tracking extension takes care of tracking window properties (height, width, left, top, windowstate)
-
+            
             InitializeComponent();
             this.DataContext = settings;
         }

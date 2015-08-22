@@ -5,8 +5,9 @@ using System.Text;
 using Microsoft.Practices.Unity;
 using System.IO;
 using TestWPFWithUnity.Settings;
-using Ursus;
+using Jot;
 using Tracking.Tracking.Unity.Web.Desktop;
+using Jot.Storage;
 
 namespace TestWPFWithUnity
 {
@@ -21,9 +22,12 @@ namespace TestWPFWithUnity
 
         public void Initialize()
         {
-            _container.RegisterInstance(StateTracker.CreateTrackerForDesktop());
+            _container.RegisterInstance(
+                new StateTracker(
+                    new FileStore(Environment.SpecialFolder.ApplicationData) { Serializer = new NewtonsoftJsonSerializer() },
+                    new Jot.Triggers.DesktopPersistTrigger()));
 
-            //only one AppSettings object
+            //singleton AppSettings object
             _container.RegisterType<AppSettings>(new ContainerControlledLifetimeManager());
 
             //adds automatic tracking have [Trackable] attribute, or implement ITrackable + all WPF windows
