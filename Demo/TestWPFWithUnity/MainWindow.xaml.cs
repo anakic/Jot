@@ -33,8 +33,8 @@ namespace TestWPFWithUnity
 
         public void InitConfiguration(TrackingConfiguration configuration)
         {
-            configuration.SettingsTracker.Configure(tabControl).AddProperties<TabControl>(tc=>tc.SelectedIndex).Apply();
-            configuration.SettingsTracker.Configure(col).AddProperties<ColumnDefinition>(tc => tc.Width).Apply();
+            configuration.StateTracker.Configure(tabControl).AddProperties<TabControl>(tc=>tc.SelectedIndex).Apply();
+            configuration.StateTracker.Configure(col).AddProperties<ColumnDefinition>(tc => tc.Width).Apply();
         }
     }
 }

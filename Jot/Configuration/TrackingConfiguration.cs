@@ -12,7 +12,7 @@ namespace Jot.Configuration
 {
     public sealed class TrackingConfiguration
     {
-        public StateTracker SettingsTracker { get; private set; }
+        public StateTracker StateTracker { get; private set; }
 
         public string Key { get; set; }
         public Dictionary<string, TrackedPropertyDescriptor> TrackedProperties { get; set; }//todo: add DefaultValue property to trackable attribute
@@ -63,7 +63,7 @@ namespace Jot.Configuration
 
         internal TrackingConfiguration(object target, StateTracker tracker)
         {
-            SettingsTracker = tracker;
+            StateTracker = tracker;
             this.TargetReference = new WeakReference(target);
             TrackedProperties = new Dictionary<string, TrackedPropertyDescriptor>();
             AutoPersistEnabled = true;
@@ -89,7 +89,7 @@ namespace Jot.Configuration
 
                     try
                     {
-                        SettingsTracker.ObjectStore.Persist(TrackedProperties[propertyName].Getter(TargetReference.Target), ConstructPropertyKey(propertyName));
+                        StateTracker.ObjectStore.Persist(TrackedProperties[propertyName].Getter(TargetReference.Target), ConstructPropertyKey(propertyName));
                     }
                     catch (Exception ex)
                     {
@@ -114,11 +114,11 @@ namespace Jot.Configuration
                     string key = ConstructPropertyKey(propertyName);
                     TrackedPropertyDescriptor descriptor = TrackedProperties[propertyName];
 
-                    if (SettingsTracker.ObjectStore.ContainsKey(key))
+                    if (StateTracker.ObjectStore.ContainsKey(key))
                     {
                         try
                         {
-                            object storedValue = SettingsTracker.ObjectStore.Retrieve(key);
+                            object storedValue = StateTracker.ObjectStore.Retrieve(key);
                             descriptor.Setter(TargetReference.Target, storedValue);
                         }
                         catch (Exception ex)
@@ -236,7 +236,7 @@ namespace Jot.Configuration
                 if (pi == keyProperty)
                     continue;
 
-                TrackableAttribute propTrackableAtt = pi.GetCustomAttributes(true).OfType<TrackableAttribute>().Where(ta => ta.TrackerName == SettingsTracker.Name).SingleOrDefault();
+                TrackableAttribute propTrackableAtt = pi.GetCustomAttributes(true).OfType<TrackableAttribute>().Where(ta => ta.TrackerName == StateTracker.Name).SingleOrDefault();
                 if (propTrackableAtt != null)
                 {
                     DefaultValueAttribute defaultAtt = pi.CustomAttributes.OfType<DefaultValueAttribute>().SingleOrDefault();
@@ -266,7 +266,7 @@ namespace Jot.Configuration
                 string key = ConstructPropertyKey(propertyName);
                 try
                 {
-                    SettingsTracker.ObjectStore.Remove(key);
+                    StateTracker.ObjectStore.Remove(key);
                 }
                 catch (Exception ex)
                 {
