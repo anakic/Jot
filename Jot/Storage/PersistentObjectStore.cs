@@ -23,7 +23,7 @@ namespace Jot.Storage
 
     public abstract class PersistentStoreBase : IObjectStore
     {
-        public ISerializer Serializer { get; set; }
+        public ISerializer Serializer { get; private set; }
         public bool CacheObjects { get; set; }
         public bool RemoveBadData { get; set; }
 
@@ -34,11 +34,6 @@ namespace Jot.Storage
         protected abstract void SetData(StoreData data, string identifier);
 
         Dictionary<string, object> _createdInstances = new Dictionary<string, object>();
-
-        public PersistentStoreBase()
-            : this(new JsonSerializer())
-        { 
-        }
 
         public PersistentStoreBase(ISerializer serializer)
         {

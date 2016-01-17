@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Jot.Storage.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,6 +45,11 @@ namespace Jot.Storage
                 }
                 return _document;
             }
+        }
+
+        public XmlStoreBase(ISerializer serializer)
+            : base(serializer)
+        {
         }
 
         protected override StoreData GetData(string identifier)

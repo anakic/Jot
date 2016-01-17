@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using System.IO;
 using System.Reflection;
 using System.IO.IsolatedStorage;
+using Jot.Storage.Serialization;
 
 namespace Jot.Storage
 {
@@ -14,17 +15,21 @@ namespace Jot.Storage
         public string FilePath { get; set; }
 
         public FileStore(System.Environment.SpecialFolder baseFolder)
-            : this(ConstructPath(baseFolder))
+            : this(ConstructPath(baseFolder), new JsonSerializer())
         {
-
         }
 
-        public FileStore(System.Environment.SpecialFolder baseFolder, string subFolder, string fileName)
-            : this(Path.Combine(Path.Combine(Environment.GetFolderPath(baseFolder), subFolder), fileName))
+        public FileStore(System.Environment.SpecialFolder baseFolder, ISerializer serializer)
+            : this(ConstructPath(baseFolder), serializer)
         {
         }
 
         public FileStore(string filePath)
+            : this(filePath, new JsonSerializer())
+        { }
+
+        public FileStore(string filePath, ISerializer serializer)
+            : base(serializer)
         {
             FilePath = filePath;
             string directory = Path.GetDirectoryName(FilePath);

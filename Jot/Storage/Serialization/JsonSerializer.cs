@@ -17,10 +17,7 @@ namespace Jot.Storage.Serialization
 
         public virtual object Deserialize(string serialized, Type originalType)
         {
-            if (originalType.IsEnum)
-                return Enum.ToObject(originalType, _serializer.Deserialize(serialized, typeof(ulong)));
-            else
-                return _serializer.Deserialize(serialized, originalType);
+            return _serializer.Deserialize(serialized, originalType);
         }
     }
 }

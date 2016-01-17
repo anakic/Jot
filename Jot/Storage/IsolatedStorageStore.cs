@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Jot.Storage.Serialization;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.IsolatedStorage;
@@ -11,7 +12,13 @@ namespace Jot.Storage
     public class IsolatedStorageStore : XmlStoreBase
     {
         IsolatedStorageFile _file;
+
         public IsolatedStorageStore(IsolatedStorageFile file)
+            : this(file, new JsonSerializer())
+        { }
+
+        public IsolatedStorageStore(IsolatedStorageFile file, ISerializer serializer)
+            : base(serializer)
         {
             _file = file;
         }

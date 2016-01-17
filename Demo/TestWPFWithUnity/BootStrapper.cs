@@ -24,7 +24,7 @@ namespace TestWPFWithUnity
         {
             _container.RegisterInstance(
                 new StateTracker(
-                    new FileStore(Environment.SpecialFolder.ApplicationData) { Serializer = new NewtonsoftJsonSerializer() },
+                    new FileStore(Environment.SpecialFolder.ApplicationData, new NewtonsoftJsonSerializer()),
                     new Jot.Triggers.DesktopPersistTrigger()));
 
             //singleton AppSettings object

@@ -71,9 +71,9 @@ namespace Jot.Unity.Web
         protected virtual void RegisterTrackers(IUnityContainer container)
         {
             //session level tracker - for properties with [Trackable(Name="SESSION")]
-            _container.RegisterType<StateTracker>(AspNetTrackerNames.SESSION, new SessionLifetimeManager(), new InjectionFactory(iocCont => new StateTracker(new SessionStore(), null) { Name = AspNetTrackerNames.SESSION }));
+            _container.RegisterType<StateTracker>(AspNetTrackerNames.SESSION, new SessionLifetimeManager(), new InjectionFactory(iocCont => new StateTracker(new AspNetSessionStore(), null) { Name = AspNetTrackerNames.SESSION }));
             //user level tracker - for properties with [Trackable(Name="USER")]
-            _container.RegisterType<StateTracker>(AspNetTrackerNames.USERPROFILE, new RequestLifetimeManager(), new InjectionFactory(c => new StateTracker(new ProfileStore(), null) { Name = AspNetTrackerNames.USERPROFILE }));
+            _container.RegisterType<StateTracker>(AspNetTrackerNames.USERPROFILE, new RequestLifetimeManager(), new InjectionFactory(c => new StateTracker(new AspNetProfileStore(), null) { Name = AspNetTrackerNames.USERPROFILE }));
         }
 
         void context_PreRequestHandlerExecute(object sender, EventArgs e)
