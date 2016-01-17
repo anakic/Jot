@@ -6,7 +6,7 @@ using System.Web;
 
 namespace Jot.Storage
 {
-    public class SessionStore : IObjectStore
+    public class AspNetSessionStore : IObjectStore
     {
         public void Persist(object target, string key)
         {

@@ -5,6 +5,7 @@ using System.Text;
 using System.Web;
 using System.Runtime.Serialization;
 using System.Web.Profile;
+using Jot.Storage.Serialization;
 
 namespace Jot.Storage
 {
@@ -22,16 +23,32 @@ namespace Jot.Storage
         protected TrackedData(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
     }
 
-    public class ProfileStore : PersistentStoreBase
+    public class AspNetProfileStore : PersistentStoreBase
     {
-        string _profileDataPropertyName = "TrackingData";
+        const string DefaultProfileDataPropertyName = "StateTrackingData";
+
+        string _profileDataPropertyName;
         /// <summary>
-        /// The name of the property that we use to store the data in the Profile object. The property must be of type <see cref="TrackedData"/>
+        /// The name of the property that will be used to store the data in the Profile object. The property must be of type <see cref="TrackedData"/>
         /// </summary>
         public string ProfileDataPropertyName
         {
             get { return _profileDataPropertyName; }
             set { _profileDataPropertyName = value; }
+        }
+
+        public AspNetProfileStore()
+            : this(DefaultProfileDataPropertyName, new JsonSerializer())
+        { }
+
+        public AspNetProfileStore(ISerializer serializer)
+            : this(DefaultProfileDataPropertyName, serializer)
+        { }
+
+        public AspNetProfileStore(string profileDataPropertyName, ISerializer serializer)
+            : base(serializer)
+        {
+            _profileDataPropertyName = profileDataPropertyName;
         }
 
         private TrackedData GetDataObject()
