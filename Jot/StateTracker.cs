@@ -11,6 +11,7 @@ using Jot.Configuration;
 using Jot.Storage;
 using Jot.Storage.Serialization;
 using Jot.Triggers;
+using System.IO.IsolatedStorage;
 
 namespace Jot
 {
@@ -64,24 +65,21 @@ namespace Jot
 
         #endregion
 
-        #region convenience methods for constructing a SettingsTracker
+        #region convenience constructors
 
-        /// <summary>
-        /// Shorthand for: new StateTracker(new PersistentObjectStore(new FileStore(Environment.SpecialFolder.ApplicationData), new JsonSerializer()), new DesktopPersistTrigger());
-        /// </summary>
-        public static StateTracker CreateTrackerForDesktop()
+        public StateTracker(string fileName)
+            : this (new FileStore(fileName), new DesktopPersistTrigger())
         {
-            return CreateTrackerForDesktop(Environment.SpecialFolder.ApplicationData);
         }
 
-        /// <summary>
-        /// Shorthand for: new StateTracker(new PersistentObjectStore(new FileStore(<see cref="folder">folder</see>), new JsonSerializer()), new DesktopPersistTrigger());
-        /// </summary>
-        /// <param name="folder"></param>
-        /// <returns></returns>
-        public static StateTracker CreateTrackerForDesktop(Environment.SpecialFolder folder)
+        public StateTracker(Environment.SpecialFolder folder)
+            : this(new FileStore(folder), new DesktopPersistTrigger())
         {
-            return new StateTracker(new FileStore(folder), new DesktopPersistTrigger());
+        }
+
+        public StateTracker(IsolatedStorageFile isolatedStorageFile)
+            : this(new IsolatedStorageStore(isolatedStorageFile), new DesktopPersistTrigger())
+        {
         }
 
         #endregion

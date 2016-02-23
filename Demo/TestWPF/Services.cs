@@ -10,6 +10,6 @@ namespace TestWPF
     //this class can be replaced by the use of an IOC container
     static class Services
     {
-        public static StateTracker Tracker = StateTracker.CreateTrackerForDesktop();
+        public static StateTracker Tracker = new StateTracker(Environment.SpecialFolder.ApplicationData);
     }
 }

@@ -22,10 +22,7 @@ namespace TestWPFWithUnity
 
         public void Initialize()
         {
-            _container.RegisterInstance(
-                new StateTracker(
-                    new FileStore(Environment.SpecialFolder.ApplicationData, new NewtonsoftJsonSerializer()),
-                    new Jot.Triggers.DesktopPersistTrigger()));
+            _container.RegisterInstance(new StateTracker(Environment.SpecialFolder.ApplicationData));
 
             //singleton AppSettings object
             _container.RegisterType<AppSettings>(new ContainerControlledLifetimeManager());
