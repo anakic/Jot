@@ -72,7 +72,6 @@
     </ApplicationDefinition>
     <Compile Include="BootStrapper.cs" />
     <Compile Include="FontToNameConverter.cs" />
-    <Compile Include="NewtonsoftJsonSerializer.cs" />
     <Compile Include="Settings\AppSettings.cs" />
     <Compile Include="Settings\DisplaySettings.cs" />
     <Compile Include="Settings\GeneralSettings.cs" />

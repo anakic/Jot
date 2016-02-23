@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,16 +9,14 @@ namespace Jot.Storage.Serialization
 {
     public class JsonSerializer : ISerializer
     {
-        JavaScriptSerializer _serializer = new JavaScriptSerializer();
-
         public virtual string Serialize(object obj)
         {
-            return _serializer.Serialize(obj);
+            return JsonConvert.SerializeObject(obj);
         }
 
         public virtual object Deserialize(string serialized, Type originalType)
         {
-            return _serializer.Deserialize(serialized, originalType);
+            return JsonConvert.DeserializeObject(serialized, originalType);
         }
     }
 }
