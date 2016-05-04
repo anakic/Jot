@@ -3,9 +3,9 @@
 ## Introduction 
 Jot is a .NET library for persisting and applying application state. Typically, this state includes sizes and locations of movable and resizable elements of the UI, last entered data (e.g. username), user settings, etc...
 
-This is a rather ubiquitous requirement. Almost every application these days needs to keep track of its own state, regardless of what it otherwise does. It's quite a tedious requirement for developers though, as it has little to do with the purpose of the application they're building. Still, it's important to do, since it enhances user experience and for a professional grade application skipping it simply won't do. 
+This is a rather ubiquitous requirement. Almost every application these days needs to keep track of its own state, regardless of what it otherwise does. It's quite a tedious requirement for developers though, as it has little to do with the purpose of the application they're building. Still, it's important to do, since it enhances user experience and for a professional grade application, skipping it simply won't do. 
 
-A common approach is to store this data in a .settings file when appropriate, and read it from there as needed. This involves writing a lot of boilerplate code to copy that data back and fourth. This code is tedious, error prone and generally and no fun to write.  
+A common approach is to store this data in a .settings file when appropriate, and read it from there as needed. This involves writing a lot of boilerplate code to copy that data back and fourth. This code is tedious, error prone and generally no fun to write.  
  
 Jot's job is to reduce the amount of code, mental effort and time needed to satisfy this requirement and to make it almost a non-task for developers. It's very flexible, and while it provides decent defaults for everything it does allow the developer to configure when, how and where each piece of data will be stored and applied.
 
