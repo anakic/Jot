@@ -1,4 +1,4 @@
-# Jot
+# Jot - A .NET library for managing application state
 
 ## Introduction 
 Jot is a .NET library for persisting and applying application state. Usually, this state includes sizes and locations of movable and resizable elements of the UI, last entered data (e.g. username), user settings, etc...
