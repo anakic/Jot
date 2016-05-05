@@ -10,7 +10,7 @@ Jot's job is to reduce the amount of code, mental effort and time needed to sati
 
 ## Example: Persisting window size and location
 
-Step 1. Create a StateTracker instance and expose it to the rest of the application
+Step 1. Create a StateTracker instance and expose it to the rest of the application (Purely for simplicity of the example, exposing the instance as a static member.) 
 ``` C#
 static class Services
 {
