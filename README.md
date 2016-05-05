@@ -106,7 +106,7 @@ What's even more cool, when using an IOC container, we can add this line as a po
 
 If we're using a `FileStore` (e.g. when using the default `StateTracker` constructor), the data is serialized and saved in a file, most likely in the %appdata% folder. 
 
-Each property value will be stored in its own XML node. The id of the property is composed of the three elements:
+Each property value will be stored in its own XML node. The id of the property is composed of three elements:
 
 1. Target object type (the type that owns the property)
 - Target object name (what we supplied when calling `IdentifyAs` or the value of the property that has `[TrackingKey]` applied)
@@ -148,7 +148,6 @@ You can contribute to this project in the standard way:
 - Make a pull request
 
 # Links
-
 Jot can be found on:
 - Nuget: https://www.nuget.org/packages/Jot
 - Codeproject: http://www.codeproject.com/Articles/475498/Easier-NET-settings (old but still mostly relevant) 
@@ -156,3 +155,26 @@ Jot can be found on:
 
 # TODO for this readme
 - Web application scenarios (making controllers/pages statefull)
+
+# License
+MIT License
+
+Copyright (c) 2016 Jot
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
