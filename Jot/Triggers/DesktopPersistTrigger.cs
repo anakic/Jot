@@ -18,8 +18,9 @@ namespace Jot.Triggers
 
         private void OnApplicationClosing()
         {
-            if (PersistRequired != null)
-                PersistRequired(this, EventArgs.Empty);
+            var handler = PersistRequired;
+            if (handler != null)
+                handler(this, EventArgs.Empty);
         }
 
         public event EventHandler PersistRequired;
