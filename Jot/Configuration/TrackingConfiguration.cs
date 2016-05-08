@@ -39,8 +39,7 @@ namespace Jot.Configuration
         private void OnStateApplied()
         {
             var handler = StateApplied;
-            if (handler != null)
-                handler(this, EventArgs.Empty);
+            handler?.Invoke(this, EventArgs.Empty);
         }
 
         public event EventHandler<TrackingOperationEventArgs> PersistingProperty;
@@ -60,8 +59,7 @@ namespace Jot.Configuration
         private void OnStatePersisted()
         {
             var handler = StatePersisted;
-            if (handler != null)
-                handler(this, EventArgs.Empty);
+            handler?.Invoke(this, EventArgs.Empty);
         }
         #endregion
 
