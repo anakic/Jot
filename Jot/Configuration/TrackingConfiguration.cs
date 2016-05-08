@@ -24,10 +24,11 @@ namespace Jot.Configuration
         public event EventHandler<TrackingOperationEventArgs> ApplyingProperty;
         private bool OnApplyingState(string property)
         {
-            if (ApplyingProperty != null)
+            var handler = ApplyingProperty;
+            if (handler != null)
             {
                 TrackingOperationEventArgs args = new TrackingOperationEventArgs(this, property);
-                ApplyingProperty(this, args);
+                handler(this, args);
                 return !args.Cancel;
             }
             else
@@ -37,17 +38,17 @@ namespace Jot.Configuration
         public event EventHandler StateApplied;
         private void OnStateApplied()
         {
-            if (StateApplied != null)
-                StateApplied(this, EventArgs.Empty);
+            StateApplied?.Invoke(this, EventArgs.Empty);
         }
 
         public event EventHandler<TrackingOperationEventArgs> PersistingProperty;
         private bool OnPersistingState(string property)
         {
-            if (PersistingProperty != null)
+            var handler = PersistingProperty;
+            if (handler != null)
             {
                 TrackingOperationEventArgs args = new TrackingOperationEventArgs(this, property);
-                PersistingProperty(this, args);
+                handler(this, args);
                 return !args.Cancel;
             }
             return true;
@@ -56,8 +57,7 @@ namespace Jot.Configuration
         public event EventHandler StatePersisted;
         private void OnStatePersisted()
         {
-            if (StatePersisted != null)
-                StatePersisted(this, EventArgs.Empty);
+            StatePersisted?.Invoke(this, EventArgs.Empty);
         }
         #endregion
 
