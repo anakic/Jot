@@ -22,17 +22,21 @@ namespace Jot.Configuration
         #region apply/persist events
 
         public event EventHandler<TrackingOperationEventArgs> ApplyingProperty;
-        private bool OnApplyingState(string property)
+        private object OnApplyingState(string property, object value)
         {
             var handler = ApplyingProperty;
             if (handler != null)
             {
-                TrackingOperationEventArgs args = new TrackingOperationEventArgs(this, property);
+                TrackingOperationEventArgs args = new TrackingOperationEventArgs(this, property, value);
                 handler(this, args);
-                return !args.Cancel;
+
+                if (args.Cancel)
+                    throw new OperationCanceledException();
+
+                return args.Value;
             }
             else
-                return true;
+                return value;
         }
 
         public event EventHandler StateApplied;
@@ -42,16 +46,19 @@ namespace Jot.Configuration
         }
 
         public event EventHandler<TrackingOperationEventArgs> PersistingProperty;
-        private bool OnPersistingState(string property)
+        private object OnPersistingState(string property, object value)
         {
             var handler = PersistingProperty;
             if (handler != null)
             {
-                TrackingOperationEventArgs args = new TrackingOperationEventArgs(this, property);
+                TrackingOperationEventArgs args = new TrackingOperationEventArgs(this, property, value);
                 handler(this, args);
-                return !args.Cancel;
+                if (args.Cancel)
+                    throw new OperationCanceledException();
+                else
+                    return args.Value;
             }
-            return true;
+            return value;
         }
 
         public event EventHandler StatePersisted;
@@ -84,12 +91,12 @@ namespace Jot.Configuration
             {
                 foreach (string propertyName in TrackedProperties.Keys)
                 {
-                    if (OnPersistingState(propertyName) == false)
-                        continue;
+                    var value = TrackedProperties[propertyName].Getter(TargetReference.Target);
 
                     try
                     {
-                        StateTracker.ObjectStore.Persist(TrackedProperties[propertyName].Getter(TargetReference.Target), ConstructPropertyKey(propertyName));
+                        value = OnPersistingState(propertyName, value);
+                        StateTracker.ObjectStore.Persist(value, ConstructPropertyKey(propertyName));
                     }
                     catch (Exception ex)
                     {
@@ -108,9 +115,6 @@ namespace Jot.Configuration
             {
                 foreach (string propertyName in TrackedProperties.Keys)
                 {
-                    if (OnApplyingState(propertyName) == false)
-                        continue;
-
                     string key = ConstructPropertyKey(propertyName);
                     TrackedPropertyDescriptor descriptor = TrackedProperties[propertyName];
 
@@ -119,6 +123,7 @@ namespace Jot.Configuration
                         try
                         {
                             object storedValue = StateTracker.ObjectStore.Retrieve(key);
+                            object valueToApply = OnApplyingState(propertyName, storedValue);
                             descriptor.Setter(TargetReference.Target, storedValue);
                         }
                         catch (Exception ex)

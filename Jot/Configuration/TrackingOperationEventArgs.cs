@@ -12,10 +12,13 @@ namespace Jot.Configuration
 
         public string Property { get; set; }
 
-        public TrackingOperationEventArgs(TrackingConfiguration configuration, string property)
+        public object Value { get; set; }
+
+        public TrackingOperationEventArgs(TrackingConfiguration configuration, string property, object value)
         {
             Configuration = configuration;
             Property = property;
+            Value = value;
         }
     }
 }
