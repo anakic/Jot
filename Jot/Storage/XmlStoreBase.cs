@@ -58,7 +58,12 @@ namespace Jot.Storage
             if (itemElement == null)
                 return null;
             else
-                return new StoreData((string)itemElement.Value, Type.GetType(itemElement.Attribute(TYPE_ATTRIBUTE).Value));
+            {
+                if (itemElement.Attribute(TYPE_ATTRIBUTE) == null)
+                    return new StoreData(null, null);
+                else
+                    return new StoreData((string)itemElement.Value, Type.GetType(itemElement.Attribute(TYPE_ATTRIBUTE).Value));
+            }
         }
 
         protected override void SetData(StoreData data, string identifier)
@@ -70,8 +75,11 @@ namespace Jot.Storage
                 Document.Root.Add(itemElement);
             }
 
-            itemElement.Value = data.Serialized;
-            itemElement.SetAttributeValue(TYPE_ATTRIBUTE, data.OriginalType.AssemblyQualifiedName);
+            itemElement.Value = data.Serialized ?? "";
+            if (data.OriginalType == null)
+                itemElement.SetAttributeValue(TYPE_ATTRIBUTE, null);
+            else
+                itemElement.SetAttributeValue(TYPE_ATTRIBUTE, data.OriginalType.AssemblyQualifiedName);
 
             SaveXML(Document.ToString());
         }

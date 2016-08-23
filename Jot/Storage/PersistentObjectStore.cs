@@ -42,13 +42,13 @@ namespace Jot.Storage
             RemoveBadData = true;
         }
 
-        public void Persist(object target, string key)
+        public void Persist(object value, string key)
         {
-            _createdInstances[key] = target;
-            if (target == null)
-                SetData(null, key);//todo: handle null in SetData implementations
+            _createdInstances[key] = value;
+            if (value == null)
+                SetData(new StoreData(null, null), key);//todo: handle null in SetData implementations
             else
-                SetData(new StoreData(Serializer.Serialize(target), target.GetType()), key);
+                SetData(new StoreData(Serializer.Serialize(value), value.GetType()), key);
         }
 
         public object Retrieve(string key)
