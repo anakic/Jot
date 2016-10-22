@@ -27,22 +27,26 @@ namespace TestWPF
         {
             InitializeComponent();
 
+            this.DataContext = _settings;
+            this.SourceInitialized += MainWindow_SourceInitialized;
+        }
+
+        private void MainWindow_SourceInitialized(object sender, EventArgs e)
+        {
             //set up tracking and apply state for the main window
             Services.Tracker.Configure(this)
                 .AddProperties<MainWindow>(w => w.Height, w => w.Width, w => w.Left, w => w.Top, w => w.WindowState)
                 .IdentifyAs("MainWindow")//not really needed since only one instance of MainWindow will ever exist, the default id is the name of the type
                 .RegisterPersistTrigger("Closed")//not really needed in main window since the tracker will detect the application is closing and persist automatically
                 .Apply();
-            
+
             //set up tracking and apply state to the settings object
             Services.Tracker.Configure(_settings).Apply();
-            
+
             //track tabcontrol's selected index
             Services.Tracker.Configure(tabControl)
                 .IdentifyAs(tabControl.Name)
                 .AddProperties<TabControl>(tc => tc.SelectedIndex).Apply();
-
-            this.DataContext = _settings;
         }
     }
 }
