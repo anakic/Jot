@@ -13,6 +13,6 @@ namespace TestWinForms
     //this class can be replaced by the use of an IOC container
     static class Services
     {
-        public static StateTracker Tracker = new StateTracker(new IsolatedStorageStore(IsolatedStorageFile.GetUserStoreForDomain()), new DesktopPersistTrigger());
+        public static StateTracker Tracker = new StateTracker();
     }
 }

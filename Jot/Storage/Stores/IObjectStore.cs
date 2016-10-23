@@ -11,8 +11,10 @@ namespace Jot.Storage
     public interface IObjectStore
     {
         bool ContainsKey(string key);
-        void Persist(object target, string key);
-        object Retrieve(string key);
-        void Remove(string key);
+        void Set(object target, string key);
+        object Get(string key);
+
+        void Initialize();
+        void CommitChanges();
     }
 }

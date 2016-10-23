@@ -9,7 +9,6 @@ using System.Web;
 using System.IO;
 using Jot.Configuration;
 using Jot.Storage;
-using Jot.Storage.Serialization;
 using Jot.Triggers;
 using System.IO.IsolatedStorage;
 
@@ -20,14 +19,11 @@ namespace Jot
         List<TrackingConfiguration> _configurations = new List<TrackingConfiguration>();
 
         public string Name { get; set; }
-        public IObjectStore ObjectStore { get; set; }
-        public ITriggerPersist AutoPersistTrigger { get; set; }
+        public IStoreFactory ObjectStoreFactory { get; set; } = new JsonFileStoreFactory();
+        public ITriggerPersist AutoPersistTrigger { get; set; } = new DesktopPersistTrigger(); 
 
-        public StateTracker(IObjectStore objectStore, ITriggerPersist globalAutoPersistTrigger)
+        public StateTracker()
         {
-            ObjectStore = objectStore;
-            AutoPersistTrigger = globalAutoPersistTrigger;
-
             if (AutoPersistTrigger != null)
                 AutoPersistTrigger.PersistRequired += (s, e) => RunAutoPersist();
         }
@@ -61,25 +57,6 @@ namespace Jot
         private TrackingConfiguration FindExistingConfig(object target)
         {
             return _configurations.SingleOrDefault(cfg => cfg.TargetReference.Target == target);
-        }
-
-        #endregion
-
-        #region convenience constructors
-
-        public StateTracker(string fileName)
-            : this (new FileStore(fileName), new DesktopPersistTrigger())
-        {
-        }
-
-        public StateTracker(Environment.SpecialFolder folder)
-            : this(new FileStore(folder), new DesktopPersistTrigger())
-        {
-        }
-
-        public StateTracker(IsolatedStorageFile isolatedStorageFile)
-            : this(new IsolatedStorageStore(isolatedStorageFile), new DesktopPersistTrigger())
-        {
         }
 
         #endregion

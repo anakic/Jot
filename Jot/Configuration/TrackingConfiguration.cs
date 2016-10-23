@@ -7,12 +7,14 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.ComponentModel;
 using Jot.Triggers;
+using Jot.Storage;
 
 namespace Jot.Configuration
 {
     public sealed class TrackingConfiguration
     {
         public StateTracker StateTracker { get; private set; }
+        public IObjectStore TargetStore { get; private set; }
 
         public string Key { get; set; }
         public Dictionary<string, TrackedPropertyDescriptor> TrackedProperties { get; set; }//todo: add DefaultValue property to trackable attribute
@@ -71,6 +73,7 @@ namespace Jot.Configuration
         internal TrackingConfiguration(object target, StateTracker tracker)
         {
             StateTracker = tracker;
+
             this.TargetReference = new WeakReference(target);
             TrackedProperties = new Dictionary<string, TrackedPropertyDescriptor>();
             AutoPersistEnabled = true;
@@ -83,6 +86,9 @@ namespace Jot.Configuration
             ITriggerPersist asNotify = target as ITriggerPersist;
             if (asNotify != null)
                 asNotify.PersistRequired += (s, e) => Persist();
+
+            TargetStore = tracker.ObjectStoreFactory.CreateStoreForObject(this.Key);
+            TargetStore.Initialize();
         }
 
         public void Persist()
@@ -96,13 +102,19 @@ namespace Jot.Configuration
                     try
                     {
                         value = OnPersistingState(propertyName, value);
-                        StateTracker.ObjectStore.Persist(value, ConstructPropertyKey(propertyName));
+                        TargetStore.Set(value, propertyName);
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Trace.WriteLine(string.Format("Persisting cancelled, property key = '{0}', message='{1}'.", propertyName, ex.Message));
                     }
                     catch (Exception ex)
                     {
-                        Trace.WriteLine(string.Format("Persisting failed, property key = '{0}', message='{1}'.", ConstructPropertyKey(propertyName), ex.Message));
+                        Trace.WriteLine(string.Format("Persisting failed, property key = '{0}', message='{1}'.", propertyName, ex.Message));
                     }
                 }
+
+                TargetStore.CommitChanges();
 
                 OnStatePersisted();
             }
@@ -115,20 +127,19 @@ namespace Jot.Configuration
             {
                 foreach (string propertyName in TrackedProperties.Keys)
                 {
-                    string key = ConstructPropertyKey(propertyName);
                     TrackedPropertyDescriptor descriptor = TrackedProperties[propertyName];
 
-                    if (StateTracker.ObjectStore.ContainsKey(key))
+                    if (TargetStore.ContainsKey(propertyName))
                     {
                         try
                         {
-                            object storedValue = StateTracker.ObjectStore.Retrieve(key);
+                            object storedValue = TargetStore.Get(propertyName);
                             object valueToApply = OnApplyingState(propertyName, storedValue);
-                            descriptor.Setter(TargetReference.Target, storedValue);
+                            descriptor.Setter(TargetReference.Target, valueToApply);
                         }
                         catch (Exception ex)
                         {
-                            Trace.WriteLine(string.Format("TRACKING: Applying tracking to property with key='{0}' failed. ExceptionType:'{1}', message: '{2}'!", key, ex.GetType().Name, ex.Message));
+                            Trace.WriteLine(string.Format("TRACKING: Applying tracking to property with key='{0}' failed. ExceptionType:'{1}', message: '{2}'!", propertyName, ex.GetType().Name, ex.Message));
                             if(descriptor.IsDefaultSpecified)
                                 descriptor.Setter(TargetReference.Target, descriptor.DefaultValue);
                         }
@@ -234,6 +245,8 @@ namespace Jot.Configuration
             PropertyInfo keyProperty = t.GetProperties().SingleOrDefault(pi => pi.IsDefined(typeof(TrackingKeyAttribute), true));
             if (keyProperty != null)
                 Key = keyProperty.GetValue(TargetReference.Target, null).ToString();
+            else
+                Key = t.Name;
 
             foreach (PropertyInfo pi in t.GetProperties())
             {
@@ -264,23 +277,6 @@ namespace Jot.Configuration
             return membershipExpression.Member.Name;
         }
 
-        public TrackingConfiguration ClearSavedState()
-        {
-            foreach (string propertyName in TrackedProperties.Keys)
-            {
-                string key = ConstructPropertyKey(propertyName);
-                try
-                {
-                    StateTracker.ObjectStore.Remove(key);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(string.Format("TRACKING: Failed to delete property '{0}'. ExceptionType:'{1}', message: '{2}'!", key, ex.GetType().Name, ex.Message));
-                }
-            }
-            return this;
-        }
-
         private TrackedPropertyDescriptor CreateDescriptor(string propertyName, bool isDefaultSpecifier, object defaultValue)
         {
             PropertyInfo pi = TargetReference.Target.GetType().GetProperty(propertyName);
@@ -289,11 +285,6 @@ namespace Jot.Configuration
                 (obj, val) => pi.SetValue(obj, val, null),
                 isDefaultSpecifier,
                 defaultValue);
-        }
-
-        private string ConstructPropertyKey(string propertyName)
-        {
-            return string.Format("{0}_{1}.{2}", TargetReference.Target.GetType().Name, Key, propertyName);
         }
     }
 }

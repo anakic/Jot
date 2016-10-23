@@ -29,7 +29,20 @@ namespace TestWinForms
                 .AddProperties<Form>(f => f.Height, f => f.Width, f => f.Top, f => f.Left, f => f.WindowState)
                 .RegisterPersistTrigger("ResizeEnd")
                 .IdentifyAs(this.Name);
-            trackingConfig.PersistingProperty += (sender, args) => { args.Cancel = WindowState == FormWindowState.Minimized; };
+
+            trackingConfig.PersistingProperty += (sender, args) => 
+            {
+                //do not save height/width for forms that are maximized or minimized
+                args.Cancel = WindowState != FormWindowState.Normal && args.Property != "WindowState";
+            };
+
+            trackingConfig.ApplyingProperty += (sender, args) =>
+            {
+                //for multi-display setup
+                //if a form was last used on the 2nd display, but is being started without the 2nd display
+                if (args.Property == "Height" || args.Property == "Width" || args.Property == "Top" || args.Property == "Left")
+                    args.Value = Math.Max(0, (int)args.Value);
+            };
 
             trackingConfig.Apply();
             

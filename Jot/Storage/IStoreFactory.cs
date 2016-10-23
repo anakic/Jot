@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Thingie.Tracking.Serialization
+namespace Jot.Storage
 {
-    class ConverterSerialization
+    public interface IStoreFactory
     {
+        IObjectStore CreateStoreForObject(string objectId);
     }
 }
