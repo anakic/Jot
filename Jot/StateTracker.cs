@@ -19,25 +19,34 @@ namespace Jot
         List<TrackingConfiguration> _configurations = new List<TrackingConfiguration>();
 
         public string Name { get; set; }
-        public IStoreFactory ObjectStoreFactory { get; set; } = new JsonFileStoreFactory();
-        public ITriggerPersist AutoPersistTrigger { get; set; } = new DesktopPersistTrigger(); 
+        public IStoreFactory ObjectStoreFactory { get; set; }
+        public ITriggerPersist AutoPersistTrigger { get; set; }
 
-        public StateTracker()
+        public StateTracker(IStoreFactory objectStoreFactory, ITriggerPersist globalAutoPersistTrigger)
         {
+            ObjectStoreFactory = objectStoreFactory;
+            AutoPersistTrigger = globalAutoPersistTrigger;
+
             if (AutoPersistTrigger != null)
                 AutoPersistTrigger.PersistRequired += (s, e) => RunAutoPersist();
+        }
+
+        public TrackingConfiguration Configure(object target)
+        {
+            return Configure(target, null);
         }
 
         /// <summary>
         /// Creates or retrieves the tracking configuration for the speficied object.
         /// </summary>
         /// <param name="target"></param>
+        /// <param name="identifier"></param>
         /// <returns></returns>
-        public TrackingConfiguration Configure(object target)
+        public TrackingConfiguration Configure(object target, string identifier)
         {
             TrackingConfiguration config = FindExistingConfig(target);
             if (config == null)
-                _configurations.Add(config = new TrackingConfiguration(target, this));
+                _configurations.Add(config = new TrackingConfiguration(target, identifier, this));
             return config;
         }
 
@@ -60,5 +69,18 @@ namespace Jot
         }
 
         #endregion
+    }
+
+    public class DefaultConfigurationFactory : IConfigurationFactory
+    {
+        public TrackingConfiguration CreateConfiguration(object target, string identifier, StateTracker tracker)
+        {
+            return new TrackingConfiguration(target, identifier, tracker);
+        }
+    }
+
+    public interface IConfigurationFactory
+    {
+        TrackingConfiguration CreateConfiguration(object target, string identifier, StateTracker tracker);
     }
 }

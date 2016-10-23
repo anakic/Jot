@@ -16,9 +16,9 @@ namespace Jot.Configuration
         public StateTracker StateTracker { get; private set; }
         public IObjectStore TargetStore { get; private set; }
 
-        public string Key { get; set; }
-        public Dictionary<string, TrackedPropertyDescriptor> TrackedProperties { get; set; }//todo: add DefaultValue property to trackable attribute
         public WeakReference TargetReference { get; private set; }
+        public string Key { get; private set; }
+        public Dictionary<string, TrackedPropertyDescriptor> TrackedProperties { get; set; }//todo: add DefaultValue property to trackable attribute
         public bool AutoPersistEnabled { get; set; }
 
         #region apply/persist events
@@ -70,7 +70,7 @@ namespace Jot.Configuration
         }
         #endregion
 
-        internal TrackingConfiguration(object target, StateTracker tracker)
+        internal TrackingConfiguration(object target, string targetIdentifier, StateTracker tracker)
         {
             StateTracker = tracker;
 
@@ -78,6 +78,10 @@ namespace Jot.Configuration
             TrackedProperties = new Dictionary<string, TrackedPropertyDescriptor>();
             AutoPersistEnabled = true;
             AddMetaData();
+
+            //if identifier was provided, override the attribute value
+            if (!string.IsNullOrEmpty(targetIdentifier))
+                Key = targetIdentifier;
 
             ITrackingAware trackingAwareTarget = target as ITrackingAware;
             if (trackingAwareTarget != null)
@@ -87,7 +91,9 @@ namespace Jot.Configuration
             if (asNotify != null)
                 asNotify.PersistRequired += (s, e) => Persist();
 
-            TargetStore = tracker.ObjectStoreFactory.CreateStoreForObject(this.Key);
+            //use the object type plus the key to identify the object store
+            string storeName = Key == null ? target.GetType().Name : string.Format("{0}_{1}", target.GetType().Name, this.Key);
+            TargetStore = tracker.ObjectStoreFactory.CreateStoreForObject(storeName);
             TargetStore.Initialize();
         }
 
@@ -226,12 +232,6 @@ namespace Jot.Configuration
             return this;
         }
 
-        public TrackingConfiguration IdentifyAs(string key)
-        {
-            this.Key = key;
-            return this;
-        }
-
         public TrackingConfiguration SetAutoPersistEnabled(bool shouldAutoPersist)
         {
             AutoPersistEnabled = shouldAutoPersist;
@@ -245,8 +245,6 @@ namespace Jot.Configuration
             PropertyInfo keyProperty = t.GetProperties().SingleOrDefault(pi => pi.IsDefined(typeof(TrackingKeyAttribute), true));
             if (keyProperty != null)
                 Key = keyProperty.GetValue(TargetReference.Target, null).ToString();
-            else
-                Key = t.Name;
 
             foreach (PropertyInfo pi in t.GetProperties())
             {

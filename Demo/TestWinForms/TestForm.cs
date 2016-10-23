@@ -24,27 +24,9 @@ namespace TestWinForms
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            
-            var trackingConfig = Services.Tracker.Configure(this)
-                .AddProperties<Form>(f => f.Height, f => f.Width, f => f.Top, f => f.Left, f => f.WindowState)
-                .RegisterPersistTrigger("ResizeEnd")
-                .IdentifyAs(this.Name);
 
-            trackingConfig.PersistingProperty += (sender, args) => 
-            {
-                //do not save height/width for forms that are maximized or minimized
-                args.Cancel = WindowState != FormWindowState.Normal && args.Property != "WindowState";
-            };
-
-            trackingConfig.ApplyingProperty += (sender, args) =>
-            {
-                //for multi-display setup
-                //if a form was last used on the 2nd display, but is being started without the 2nd display
-                if (args.Property == "Height" || args.Property == "Width" || args.Property == "Top" || args.Property == "Left")
-                    args.Value = Math.Max(0, (int)args.Value);
-            };
-
-            trackingConfig.Apply();
+            //use convenience method for setting up Form tracking
+            Services.Tracker.ConfigureForm(this).Apply();
             
             //Track colorpicker1 usercontrol (based on specified attributes)
             Services.Tracker.Configure(colorPicker1).Apply();

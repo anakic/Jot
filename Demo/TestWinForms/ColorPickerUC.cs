@@ -10,7 +10,7 @@ using Jot.Configuration;
 
 namespace TestWinForms
 {
-    public partial class ColorPickerUC : UserControl, ITrackingAware
+    public partial class ColorPickerUC : UserControl
     {
         [Trackable]
         public byte Red 
@@ -31,6 +31,9 @@ namespace TestWinForms
             set { tbBlue.Value = value; }
         }
 
+        [TrackingKey]
+        public string TrackingId { get { return this.Name; } }
+
         public ColorPickerUC()
         {
             InitializeComponent();
@@ -45,11 +48,6 @@ namespace TestWinForms
         private void tb_ValueChanged(object sender, EventArgs e)
         {
             pnlSample.BackColor = Color.FromArgb(255, tbRed.Value, tbGreen.Value, tbBlue.Value);
-        }
-
-        public void InitConfiguration(TrackingConfiguration configuration)
-        {
-            configuration.IdentifyAs(this.Name);
         }
     }
 }
