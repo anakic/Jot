@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Jot.Configuration
+namespace Jot.DefaultInitializer
 {
     /// <summary>
     /// Marks the property as the tracking identifier for the object.

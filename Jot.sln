@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWinForms", "Demo\TestWi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWPF", "Demo\TestWPF\TestWPF.csproj", "{9D1520D9-DE96-4C8D-8C19-FA921851C9DA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jot.Tests", "Jot.Tests\Jot.Tests.csproj", "{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6970362B-C7F2-40F1-8BC8-882A0BEF0A40}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +73,24 @@ Global
 		{9D1520D9-DE96-4C8D-8C19-FA921851C9DA}.Release|Mixed Platforms.Build.0 = Release|x86
 		{9D1520D9-DE96-4C8D-8C19-FA921851C9DA}.Release|x86.ActiveCfg = Release|x86
 		{9D1520D9-DE96-4C8D-8C19-FA921851C9DA}.Release|x86.Build.0 = Release|x86
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Debug|x86.Build.0 = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Deploy|Any CPU.ActiveCfg = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Deploy|Any CPU.Build.0 = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Deploy|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Deploy|Mixed Platforms.Build.0 = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Deploy|x86.ActiveCfg = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Deploy|x86.Build.0 = Debug|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Release|x86.ActiveCfg = Release|Any CPU
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,5 +98,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{216ABFAE-1495-49BD-9C2F-0C4C3F09ED6F} = {A3B3B8F6-A266-4363-9647-991928B06C5B}
 		{9D1520D9-DE96-4C8D-8C19-FA921851C9DA} = {A3B3B8F6-A266-4363-9647-991928B06C5B}
+		{16FE17C7-911F-40D7-82BF-3A3B3AFD0B20} = {6970362B-C7F2-40F1-8BC8-882A0BEF0A40}
 	EndGlobalSection
 EndGlobal

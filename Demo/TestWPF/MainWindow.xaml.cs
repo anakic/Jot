@@ -37,7 +37,7 @@ namespace TestWPF
         private void MainWindow_SourceInitialized(object sender, EventArgs e)
         {
             //set up tracking and apply state for the main window
-            Services.Tracker.ConfigureWindow(this).Apply();
+            Services.Tracker.Configure(this).Apply();
 
             //track tabcontrol's selected index
             Services.Tracker.Configure(tabControl, tabControl.Name)

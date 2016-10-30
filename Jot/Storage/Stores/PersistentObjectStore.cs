@@ -4,7 +4,7 @@ namespace Jot.Storage
 {
     public abstract class PersistentStoreBase : IObjectStore
     {
-        public Dictionary<string, object> _values;
+        Dictionary<string, object> _values;
 
         public bool ContainsKey(string identifier)
         {

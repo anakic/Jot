@@ -62,20 +62,21 @@ namespace Jot.Storage.Stores
         }
         #endregion
 
-        string _filePath;
+        public string FilePath { get; private set; }
+
         public JsonFileStore(string filePath)
         {
-            _filePath = filePath;
+            FilePath = filePath;
         }
 
         protected override Dictionary<string, object> LoadValues()
         {
             List<StoreItem> storeItems = null;
-            if (File.Exists(_filePath))
+            if (File.Exists(FilePath))
             {
                 try
                 {
-                    storeItems = JsonConvert.DeserializeObject<List<StoreItem>>(File.ReadAllText(_filePath), new StoreItemConverter());
+                    storeItems = JsonConvert.DeserializeObject<List<StoreItem>>(File.ReadAllText(FilePath), new StoreItemConverter());
                 }
                 catch { }
             }
@@ -91,11 +92,11 @@ namespace Jot.Storage.Stores
             var list = _values.Select(kvp => new StoreItem() { Name = kvp.Key, Value = kvp.Value, Type = kvp.Value?.GetType() });
             string serialized = JsonConvert.SerializeObject(list, new JsonSerializerSettings() { Formatting = Formatting.Indented, TypeNameHandling=TypeNameHandling.None });
 
-            string directory = Path.GetDirectoryName(_filePath);
+            string directory = Path.GetDirectoryName(FilePath);
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
-            File.WriteAllText(_filePath, serialized);
+            File.WriteAllText(FilePath, serialized);
         }
     }
 }

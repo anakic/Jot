@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Jot.Configuration
+namespace Jot.DefaultInitializer
 {
     /// <summary>
     /// If applied to a property specifies if the property should be tracked.

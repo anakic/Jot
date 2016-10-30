@@ -13,6 +13,6 @@ namespace TestWinForms
     //this class can be replaced by the use of an IOC container
     static class Services
     {
-        public static StateTrackerDesktop Tracker = new StateTrackerDesktop();
+        public static StateTracker Tracker = new StateTracker();
     }
 }

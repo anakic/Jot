@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using System.Drawing;
-using Jot.Configuration;
+using Jot.DefaultInitializer;
 
 namespace TestWPF.Settings
 {

@@ -26,7 +26,7 @@ namespace TestWinForms
             base.OnLoad(e);
 
             //use convenience method for setting up Form tracking
-            Services.Tracker.ConfigureForm(this).Apply();
+            Services.Tracker.Configure(this).Apply();
             
             //Track colorpicker1 usercontrol (based on specified attributes)
             Services.Tracker.Configure(colorPicker1).Apply();

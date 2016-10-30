@@ -1,5 +1,4 @@
-﻿using System;
-namespace Jot.Storage
+﻿namespace Jot.Storage
 {
     /// <summary>
     /// Implementors of this interface delare that they can store and retrieve arbitrary objects. 

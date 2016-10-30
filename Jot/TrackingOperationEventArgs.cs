@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
+﻿using System.ComponentModel;
 
-namespace Jot.Configuration
+namespace Jot
 {
     public class TrackingOperationEventArgs : CancelEventArgs
     {
         public TrackingConfiguration Configuration { get; private set; }
 
         public string Property { get; set; }
-
         public object Value { get; set; }
 
         public TrackingOperationEventArgs(TrackingConfiguration configuration, string property, object value)
