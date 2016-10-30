@@ -3,25 +3,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Jot.Storage.Stores;
 using System.IO;
 using System.Drawing;
+using Jot.Tests.TestDataClasses;
 
 namespace Jot.Tests
 {
-    class TestClass1
-    {
-        public int Int { get; set; }
-        public double Double { get; set; }
-        public TimeSpan Timespan { get; set; }
-        public TestClass2 A { get; set; }
-        public TestClass2 B { get; set; }
-    }
-
-    class TestClass2
-    {
-        public Guid Id { get; set; }
-        public DateTime DateTime { get; set; }
-        public string Str { get; set; }
-    }
-
     [TestClass]
     public class JsonFileStoreTests
     {
@@ -108,9 +93,9 @@ namespace Jot.Tests
         public void SetGetComplexValue()
         {
             string key = "key";
-            TestClass1 value = new TestClass1()
+            Foo value = new Foo()
             {
-                A = new TestClass2() { Id = Guid.NewGuid(), DateTime = DateTime.Now, Str = "testStr" },
+                A = new Bar() { Id = Guid.NewGuid(), DateTime = DateTime.Now, Str = "testStr" },
                 B = null,
                 Double = 999.65f,
                 Int = 555,
@@ -123,7 +108,7 @@ namespace Jot.Tests
             store1.CommitChanges();
 
             var store2 = CreateStore();
-            TestClass1 value2 = (TestClass1)store2.Get(key);
+            Foo value2 = (Foo)store2.Get(key);
 
             Assert.AreEqual(value.A.DateTime, value.A.DateTime);
             Assert.AreEqual(value.A.Id, value.A.Id);
