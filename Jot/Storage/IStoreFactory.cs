@@ -2,6 +2,6 @@
 {
     public interface IStoreFactory
     {
-        IObjectStore CreateStoreForObject(string objectId);
+        IStore CreateStoreForObject(string objectId);
     }
 }

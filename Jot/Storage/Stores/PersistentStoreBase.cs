@@ -2,7 +2,7 @@
 
 namespace Jot.Storage
 {
-    public abstract class PersistentStoreBase : IObjectStore
+    public abstract class PersistentStoreBase : IStore
     {
         Dictionary<string, object> _values;
 

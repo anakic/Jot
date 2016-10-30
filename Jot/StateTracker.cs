@@ -30,14 +30,29 @@ namespace Jot
             }
         }
 
-
+        /// <summary>
+        /// Creates a StateTracker that uses a per-user json file to store the data
+        /// and does a global persist when it detects the desktop application is closing. 
+        /// This constructor is appropriate for most desktop application use cases. 
+        /// Both ObjectStoreFactory and AutoPersistTrigger properties can be set/modified.
+        /// </summary>
         public StateTracker()
+            :this(new JsonFileStoreFactory(), new DesktopPersistTrigger())
         {
-            //by default store data in a peruser jsonfile
-            ObjectStoreFactory = new JsonFileStoreFactory();
+        }
 
-            //run auto persist on all configurations when application is closing
-            AutoPersistTrigger = new DesktopPersistTrigger();
+        /// <summary>
+        /// Creates a new instance of the state tracker. 
+        /// </summary>
+        /// <remarks>
+        /// Even though both arguments can be set via properties, this constructor is here to make the dependencies explicit.
+        /// </remarks>
+        /// <param name="storeFactory">The factory that will create an IStore for each tracked object's data.</param>
+        /// <param name="persistTrigger">The object that will notify the state tracker when it should run a global persist operation. This will usually be when the application is shutting down.</param>
+        public StateTracker(IStoreFactory storeFactory, ITriggerPersist persistTrigger)
+        {
+            ObjectStoreFactory = storeFactory;
+            AutoPersistTrigger = persistTrigger;
 
             //add the basic configuration initializers
             ConfigurationInitializers = new List<IConfigurationInitializer>()

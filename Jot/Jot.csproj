@@ -76,8 +76,8 @@
     <Compile Include="Storage\IStoreFactory.cs" />
     <Compile Include="Storage\JsonFileStoreFactory.cs" />
     <Compile Include="Storage\Stores\JsonFileStore.cs" />
-    <Compile Include="Storage\Stores\IObjectStore.cs" />
-    <Compile Include="Storage\Stores\PersistentObjectStore.cs" />
+    <Compile Include="Storage\Stores\IStore.cs" />
+    <Compile Include="Storage\Stores\PersistentStoreBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DefaultInitializer\ITrackingAware.cs" />
     <Compile Include="Triggers\DesktopPersistTrigger.cs" />

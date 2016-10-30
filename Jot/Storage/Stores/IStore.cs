@@ -7,7 +7,7 @@
     /// One could easily implement this interface to use for example MongoDB to save property values
     /// </remarks>
     /// </summary>
-    public interface IObjectStore
+    public interface IStore
     {
         bool ContainsKey(string key);
         void Set(object target, string key);

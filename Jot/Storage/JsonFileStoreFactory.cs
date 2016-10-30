@@ -24,7 +24,7 @@ namespace Jot.Storage
             StoreFolderPath = storeFolderPath;
         }
 
-        public IObjectStore CreateStoreForObject(string objectId)
+        public IStore CreateStoreForObject(string objectId)
         {
             return new JsonFileStore(Path.Combine(StoreFolderPath, string.Format("{0}.json", objectId)));
         }

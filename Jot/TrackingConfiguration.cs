@@ -11,7 +11,7 @@ namespace Jot
     public sealed class TrackingConfiguration
     {
         public StateTracker StateTracker { get; private set; }
-        public IObjectStore TargetStore { get; private set; }
+        public IStore TargetStore { get; private set; }
 
         public WeakReference TargetReference { get; private set; }
         public string Key { get; set; }
