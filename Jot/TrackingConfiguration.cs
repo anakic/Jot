@@ -88,7 +88,7 @@ namespace Jot
 
             //use the object type plus the key to identify the object store
             string storeName = Key == null ? target.GetType().Name : string.Format("{0}_{1}", target.GetType().Name, Key);
-            TargetStore = StateTracker.ObjectStoreFactory.CreateStoreForObject(storeName);
+            TargetStore = StateTracker.StoreFactory.CreateStoreForObject(storeName);
             TargetStore.Initialize();
         }
 

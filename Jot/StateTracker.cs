@@ -14,8 +14,8 @@ namespace Jot
         List<TrackingConfiguration> _configurations = new List<TrackingConfiguration>();
 
         public string Name { get; set; }
-        public IStoreFactory ObjectStoreFactory { get; set; }
         public List<IConfigurationInitializer> ConfigurationInitializers { get; private set; }
+        public IStoreFactory StoreFactory { get; set; }
 
         public ITriggerPersist AutoPersistTrigger
         {
@@ -37,7 +37,7 @@ namespace Jot
         /// Both ObjectStoreFactory and AutoPersistTrigger properties can be set/modified.
         /// </summary>
         public StateTracker()
-            :this(new JsonFileStoreFactory(), new DesktopPersistTrigger())
+            : this(new JsonFileStoreFactory(), new DesktopPersistTrigger())
         {
         }
 
@@ -51,7 +51,7 @@ namespace Jot
         /// <param name="persistTrigger">The object that will notify the state tracker when it should run a global persist operation. This will usually be when the application is shutting down.</param>
         public StateTracker(IStoreFactory storeFactory, ITriggerPersist persistTrigger)
         {
-            ObjectStoreFactory = storeFactory;
+            StoreFactory = storeFactory;
             AutoPersistTrigger = persistTrigger;
 
             //add the basic configuration initializers
