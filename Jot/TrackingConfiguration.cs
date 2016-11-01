@@ -219,7 +219,7 @@ namespace Jot
 
             var handler = Expression.Lambda(
                     eventInfo.EventHandlerType,
-                    Expression.Call(Expression.Constant(new Action(() => { if (_applied) Persist(); })), "Invoke", Type.EmptyTypes),
+                    Expression.Call(Expression.Constant(new Action(() => { if (_applied) Persist(); /*don't persist before applying stored value*/ })), "Invoke", Type.EmptyTypes),
                     parameters)
               .Compile();
 
@@ -232,8 +232,6 @@ namespace Jot
             AutoPersistEnabled = shouldAutoPersist;
             return this;
         }
-
-        
 
         private static string GetPropertyNameFromExpression<T>(Expression<Func<T, object>> exp)
         {

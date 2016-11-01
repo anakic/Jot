@@ -5,7 +5,7 @@ using System.Windows;
 namespace Jot.CustomInitializers
 {
     /// <summary>
-    /// Sets up the tracking configuration for objects of type WPF Windows
+    /// Sets up the tracking configuration for WPF Window objects
     /// </summary>
     public class WindowConfigurationInitializer : DefaultConfigurationInitializer
     {

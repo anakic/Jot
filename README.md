@@ -1,67 +1,121 @@
-# Jot - A .NET library for managing application state
+# Jot - a .NET library for managing application state
 
 ## Introduction 
-Jot is a .NET library for persisting and applying application state. Typically, this includes sizes and locations of movable and resizable elements of the UI, last entered data (e.g. username), user settings, etc... 
+Almost every application these days needs to keep track of its own state, regardless of what it otherwise does. Typically, this includes sizes and locations of movable and resizable elements of the UI, last entered data (e.g. username) application settings and user preferences. 
 
-Almost every application these days needs to keep track of its own state, regardless of what it otherwise does. A common approach is to store this data in a .settings file, and read and update it as needed. This involves writing a lot of boilerplate code to copy that data back and fourth. This code is tedious, error prone and generally no fun to write.  
+A common approach is to store this data in a .settings file, and read and update it as needed. This involves writing a lot of boilerplate code to copy that data back and forth. This code is generally tedious, error prone and no fun to write.
  
-Jot's job is to reduce the amount of code, mental effort and time needed to satisfy this requirement and to make it almost a non-task for developers. The library is quite flexible, it provides reasonable defaults for everything, but allows the developer to configure in detail when, how and where each piece of data will be stored and applied.
+Jot's job is to reduce the amount of code, mental effort and time needed to satisfy this common requirement, and to make it almost a non-task for developers. 
+
+The library starts off with reasonable defaults for everything but it gives the developer full control over when, how and where each piece of data will be stored and applied.
 
 
 ## Example: Persisting window size and location
 
-Step 1. Create a StateTracker instance and expose it to the rest of the application (Purely for simplicity of the example, exposing the instance as a static member.) 
+**Step 1.** Create a StateTracker instance and expose it to the rest of the application (for simplicity's sake, let's expose it as a static property) 
 ``` C#
 static class Services
 {
-    public static StateTracker Tracker = new StateTracker();//use constructor overloads to configure how data is stored
+    public static StateTracker Tracker = new StateTracker();//we can use constructor overloads to configure where & when data is stored
 }
 ```
-Step2. Use the state tracker to keep track of a window's size, state and location.
+**Step 2**: apply tracking 
+
 ``` C#
 public MainWindow()
 {
     InitializeComponent();
     
-    Services.Tracker.Configure(this)//get or create a TrackingConfiguration object for the window
-        .IdentifyAs("MyMainWindow")//arbitrary unique string to identify the target object
-        .AddProperties<MainWindow>(w => w.Height, w => w.Width, w => w.Left, w => w.Top, w => w.WindowState)
-        .RegisterPersistTrigger(nameof(Closed))//window.Closed will trigger persisting data
-        .Apply();//apply any previous state straight away
+	Services.Tracker.Configure(this, "main window")//the object to track and a string by which to identify it
+        .AddProperties<Window>(w => w.Height, w => w.Width, w => w.Top, w => w.Left, w => w.WindowState)//properties to track
+        .RegisterPersistTrigger(nameof(SizeChanged))//when to persist data to store
+        .Apply();//apply any previously stored data
 }
 
 ```
 
-## Configuring the StateTracker
+The above code is simple enough and would certainly work for most cases, but for real world use, we would need to handle a few more edge cases. 
 
-The `StateTracker` class has several convenience constructors which provide reasonable defaults, but the main constructor allows you to specify exactly **were** the data will be stored and **when**:
-  
+Jot already comes with configuration presets for tracking `Window` and `Form` objects. These presets are enabled by default, but we can certainly remove them (from the `StateTracker`'s `ConfigurationInitializers` property). We can also add our own implementations of `IConfigurationInitializer` to provide configuration presets for any type we like. 
+
+Since the `ConfigurationInitializer` for `Window` objects is included by default, all we need to do to set up tracking for a `Window` is this:
+
+**Step 2. revisited - final version**
+
 ``` C#
-StateTracker(IObjectStore objectStore, ITriggerPersist globalAutoPersistTrigger)
+public MainWindow()
+{
+    InitializeComponent();
+
+	//Why SourceInitialized?
+	//Subtle WPF issue: WPF will always maximize a window to the primary screen 
+	//if WindowState is set too early (e.g. in the constructor), even
+	//if the Left property says it should be on the 2nd screen. Setting
+	//these values in SourceInitialized resolves the issue.
+    this.SourceInitialized += (s,e) => Services.Tracker.Configure(this).Apply(); 
+}
+
 ```
 
-### Where data is stored
-The `objectStore` argument determines where data will be stored. There are several implementations of `IObjectStore` built into Jot:
-- `FileStore`
-- `IsolatedStorageStore`
-- `AspNetSessionStore`
-- `AspNetUserProfileStore `
+This will track the window's size, location and window state. The tracking configuration preset is defined in [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs).
+ 
 
-You are, of course, free to make additional implementations of `IObjectStore` yourself and pass them to the StateTracker. 
+## Where & when data gets stored
 
-For desktop applications, `FileStore` is commonly the appropriate choice. The file path will determine if the settings are per-user (AppData) or per-machine (AllUsersProfile). FileStore and IsolatedStorageStore will use `JsonSerialization` by default to serialize data, but there are several other serializer implementations that can be used if needed.
+The `StateTracker` class has an empty constructor which uses reasonable defaults, but the main constructor allows you to specify exactly **were** the data will be stored and **when**:
+  
+``` C#
+StateTracker(IStoreFactory storeFactory, ITriggerPersist persistTrigger)
+```
 
-### When data is stored
+The two arguments are explained below.
+
+### 1. Where data is stored
+The `storeFactory` argument controls where data is stored. This factory will be used to create a data store for each tracked object. 
+
+You can, of course, provide your own storage mechanism (by implementing `IStore` and `IStoreFactory`) and Jot will happily use it.
+
+By default, Jot stores data in .json files in the following folder: `%AppData%\[company name]\[application name]` (*company name* and *application name* are read from the entry assembly's attributes). The default folder is a per-user folder, but you can use a per-machine folder like so:
+
+``` C#
+var tracker = new StateTracker() { StoreFactory = new JsonFileStoreFactory(false) };//true: per-user, false: per-machine
+```
+
+Or you can give it a specific folder like so:
+
+``` C#
+var tracker = new StateTracker() { StoreFactory = new JsonFileStoreFactory(@"c:\example\path\") };
+```
+
+For desktop applications, the per-user default is usually fine.
+
+### 2. When data is stored
 The StateTracker will use an object that implements `ITriggerPersist` to notify it when it should do a global save of all data. For desktop applications this will be just before the application closes. 
 
 The `ITriggerPersist` interface has just one memeber: the `PersistRequired` event and the only built-in implementation of this interface is the `DesktopPersistTrigger` class which fires the `PersistRequired` event when a desktop application is about to shut down. 
 
-This interface serves another purpose too: you can implement it in any object you want to track, to enable the object to trigger its own persistence. This is useful because some objects might be garbage collected before the application closes. These objects should either implement `ITriggerPersist` themselves -or- you can call `stateTracker.Persist(target)` manually for them when appropriate -or- you can use any other event they expose as a trigger by calling `RegisterPersistTrigger(eventName)`, as in the example above where we use the `Window.Closed` event to trigger persisting the window's properties.      
 
-## Types can specify their own tracking configuration 
-Types can be self descriptive about how they want their instances to be tracked. They can do this in two ways: 
-- using attributes (`[TrackingKey]` and `[Trackable]` --> equivalent to `IdentifyAs` and `AddProperty`)
-- implementing `ITrackingAware` and/or `ITriggerPersist`
+
+## Configuration initializers
+
+We know we can manipulate the tracking configuration of objects individually. We do this by calling `StateTracker.Configure(targetObj)` and then calling methods on that configuration object. This way, we can control how a specific object in our application will be tracked.
+ 
+But... we can also configure tracking for **all** instances of a given type by using configuration initializers. 
+
+We do this by implementing [IConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/IConfigurationInitializer.cs) and registering our implementation with the StateTracker by calling `StateTracker.AddConfigurationInitializer(cfgInitializerForFoo)`.
+
+You can see (and remove) the included initializers in the `stateTracker.ConfigurationInitializers` property.
+
+Jot includes these configuration initializers out of the box:
+- [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs)
+- [FormConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/FormConfigurationInitializer.cs)
+- [DefaultConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/DefaultInitializer/DefaultConfigurationInitializer.cs)
+
+The first two initialize tracking configurations for `Window` and `Form` objects so we don't have to do it manually. They're pretty simple so you can use them as examples for implementing your own initializers.
+
+The `DefaultConfigurationInitializer` is applicable for type `object`, so it gets used for all objects that don't have a more specific initializer. It enables objects to use `[Trackable]` and `[TrackingKey]` attributes and the `ITrackingAware` interface to be self descriptive about how they wish to be tracked.
+
+The `DefaultConfigurationInitializer` is included by default in the `StateTracker` so you can use the attributes and `ITrackingAware` in your classes and they will be honored.
 
 ### Example: Using tracking attributes
 
@@ -91,49 +145,21 @@ public class GeneralSettings : ITrackingAware
 		}
 	}
 ```
-
-When a type is self descriptive about the way it wishes to be tracked, all that's needed to handle tracking is to call: 
+All that's needed now to start tracking the object is to call: 
 
 ``` C#
 tracker.Configure(target).Apply();
 ```
 
-This is nice because we don't need to call `AddProperty`, `IdentifyAs` etc. for each instance, the object's type determines everything itself. 
-
-What's even more cool, when using an IOC container, we can add this line as a post-resolve step (not every container will support this but e.g. Unity and Ninject do). **If we do, all resolved objects will have tracking applied automatically**. Neat, huh?
+This is nice because we don't need to call manipulate the tracking configuration (e.g. calls to `AddProperty`) for each instance. 
 
 # Example of stored data
 
-If we're using a `FileStore` (e.g. when using the default `StateTracker` constructor), the data is serialized and saved in a file, most likely in the %appdata% folder. 
+Each tracked object will have its own file where its tracked property values will be saved. Here's an example:
 
-Each property value will be stored in its own XML node. The id of the property is composed of three elements:
+![](http://i.imgur.com/A2LpD2t.png)
 
-1. Target object type (the type that owns the property)
-- Target object name (what we supplied when calling `IdentifyAs` or the value of the property that has `[TrackingKey]` applied)
-- Property name  
-
-So basically the format is as follows: `TargetType`_`TargetName`.`PropertyName`
-
-For example if the id is `MainWindow_.Left` that means:
-- Target object type is `MainWindow`
-- Target object name is empty (this is OK if there's only ever going to be one instance of `MainWindow`)
-- The name of the property is `Left` 
-
-Here is a full example of a storage file for a tiny demo application:
-
-``` XML
-<Data>
-  <Item Id="MainWindow_.Left" Type="System.Double, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">760.0</Item>
-  <Item Id="MainWindow_.Top" Type="System.Double, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">368.0</Item>
-  <Item Id="MainWindow_.Height" Type="System.Double, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">583.0</Item>
-  <Item Id="MainWindow_.Width" Type="System.Double, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">729.0</Item>
-  <Item Id="MainWindow_.WindowState" Type="System.Windows.WindowState, PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">0</Item>
-  <Item Id="AppSettings_.DisplaySettings" Type="TestWPFWithUnity.Settings.DisplaySettings, TestWPFWithUnity, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">{"Font":"Corbel","FontSize":125.0}</Item>
-  <Item Id="AppSettings_.GeneralSettings" Type="TestWPFWithUnity.Settings.GeneralSettings, TestWPFWithUnity, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">{"Property1":123,"Property2":"test string","Property3":true}</Item>
-  <Item Id="TabControl_.SelectedIndex" Type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">1</Item>
-  <Item Id="ColumnDefinition_.Width" Type="System.Windows.GridLength, PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">"Auto"</Item>
-</Data>
-```
+We're tracking three objects: AppSettings, MainWindow and a single TabControl. 
 
 # Demos
 
@@ -141,7 +167,7 @@ Demo projects are included in the repository. Playing around with them should be
 
 # Contributing
 
-You can contribute to this project in the standard way:
+You can contribute to this project in the usual way:
 
 1. Fork the project
 - Push your commits to your fork
@@ -154,7 +180,7 @@ Jot can be found on:
 
 
 # TODO for this readme
-- Web application scenarios (making controllers/pages statefull)
+- Web application scenarios
 
 # License
 MIT License
