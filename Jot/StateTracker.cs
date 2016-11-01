@@ -14,8 +14,8 @@ namespace Jot
         List<TrackingConfiguration> _configurations = new List<TrackingConfiguration>();
 
         public string Name { get; set; }
-        public List<IConfigurationInitializer> ConfigurationInitializers { get; private set; }
         public IStoreFactory StoreFactory { get; set; }
+        public Dictionary<Type, IConfigurationInitializer> ConfigurationInitializers { get; private set; } = new Dictionary<Type, IConfigurationInitializer>();
 
         public ITriggerPersist AutoPersistTrigger
         {
@@ -55,12 +55,14 @@ namespace Jot
             AutoPersistTrigger = persistTrigger;
 
             //add the basic configuration initializers
-            ConfigurationInitializers = new List<IConfigurationInitializer>()
-            {
-                new DefaultConfigurationInitializer(),//the default, will be used for all objects that don't have a more specific initializer
-                new FormConfigurationInitializer(),//will be used for initializing configuration for forms (WinForms)
-                new WindowConfigurationInitializer(),//will be used for initializing configuration for windows (WPF)
-            };
+            AddConfigurationInitializer(new DefaultConfigurationInitializer()); //the default, will be used for all objects that don't have a more specific initializer
+            AddConfigurationInitializer(new FormConfigurationInitializer());    //will be used for initializing configuration for forms (WinForms)
+            AddConfigurationInitializer(new WindowConfigurationInitializer());  //will be used for initializing configuration for windows (WPF)
+        }
+
+        public void AddConfigurationInitializer(IConfigurationInitializer cfgInitializer)
+        {
+            ConfigurationInitializers[cfgInitializer.ForType] = cfgInitializer;
         }
 
         private void AutoPersistTrigger_PersistRequired(object sender, EventArgs e)
@@ -94,7 +96,7 @@ namespace Jot
 
         private IConfigurationInitializer FindInitializer(Type type)
         {
-            var initializer = ConfigurationInitializers.SingleOrDefault(i => i.ForType == type);
+            IConfigurationInitializer initializer = ConfigurationInitializers.ContainsKey(type) ? ConfigurationInitializers[type] : null;
 
             if (initializer != null || type == typeof(object))
                 return initializer;
