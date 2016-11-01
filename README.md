@@ -36,9 +36,9 @@ public MainWindow()
 
 The above code is simple enough and would certainly work for most cases, but for real world use, we would need to handle a few more edge cases. 
 
-Jot already comes with configuration presets for tracking `Window` and `Form` objects. These presets are enabled by default, but we can certainly remove them (from the `StateTracker`'s `ConfigurationInitializers` property). We can also add our own implementations of `IConfigurationInitializer` to provide configuration presets for any type we like. 
+Jot already comes with configuration presets for tracking `Window` and `Form` objects. These presets are enabled by default, but we can certainly change/remove them or supply our own presets for any type (see [ConfigurationInitializers](#configuration-initializers)).
 
-Since the `ConfigurationInitializer` for `Window` objects is included by default, all we need to do to set up tracking for a `Window` is this:
+Since the preset for `Window` objects is included by default, all we need to do to set up tracking for a `Window` is this:
 
 **Step 2. revisited - final version**
 
@@ -90,28 +90,35 @@ var tracker = new StateTracker() { StoreFactory = new JsonFileStoreFactory(@"c:\
 For desktop applications, the per-user default is usually fine.
 
 ### 2. When data is stored
-The StateTracker will use an object that implements `ITriggerPersist` to notify it when it should do a global save of all data. For desktop applications this will be just before the application closes. 
+The StateTracker uses an object that implements `ITriggerPersist` to get notified when it should do a global save of all data. The `ITriggerPersist` interface has just one memeber: the `PersistRequired` event.
 
-The `ITriggerPersist` interface has just one memeber: the `PersistRequired` event and the only built-in implementation of this interface is the `DesktopPersistTrigger` class which fires the `PersistRequired` event when a desktop application is about to shut down. 
+The only built-in implementation of this interface is the `DesktopPersistTrigger` class which fires the `PersistRequired` event when a desktop application is about to shut down. 
 
+> Note: Objects that don't survive until application shutdown should be persisted earlier. This can be done by specifying the persist trigger (`RegisterPersistTrigger`) or by explicitly calling Persist on their `TrackingConfiguration` object when appropriate.  
 
 
 ## Configuration initializers
 
-We know we can manipulate the tracking configuration of objects individually. We do this by calling `StateTracker.Configure(targetObj)` and then calling methods on that configuration object. This way, we can control how a specific object in our application will be tracked.
- 
-But... we can also configure tracking for **all** instances of a given type by using configuration initializers. 
+We've seen we can manipulate the tracking configuration of individual objects, like so:
+
+``` C#
+	tracker.Configure(target, "some id")
+		.AddProperties(...)
+		.RegisterPersistTrigger(...)
+``` 
+
+But, we can also configure tracking for **all instances of a given type** by using configuration initializers. 
 
 We do this by implementing [IConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/IConfigurationInitializer.cs) and registering our implementation with the StateTracker by calling `StateTracker.AddConfigurationInitializer(cfgInitializerForFoo)`.
 
-You can see (and remove) the included initializers in the `stateTracker.ConfigurationInitializers` property.
+You can see (and modify) the included initializers in the `stateTracker.ConfigurationInitializers` property.
 
 Jot includes these configuration initializers out of the box:
 - [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs)
 - [FormConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/FormConfigurationInitializer.cs)
 - [DefaultConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/DefaultInitializer/DefaultConfigurationInitializer.cs)
 
-The first two initialize tracking configurations for `Window` and `Form` objects so we don't have to do it manually. They're pretty simple so you can use them as examples for implementing your own initializers.
+The first two initialize tracking configurations for `Window` and `Form` objects so we don't have to do it manually. They're simple enough to be used as examples for implementing your own initializers.
 
 The `DefaultConfigurationInitializer` is applicable for type `object`, so it gets used for all objects that don't have a more specific initializer. It enables objects to use `[Trackable]` and `[TrackingKey]` attributes and the `ITrackingAware` interface to be self descriptive about how they wish to be tracked.
 
@@ -151,15 +158,16 @@ All that's needed now to start tracking the object is to call:
 tracker.Configure(target).Apply();
 ```
 
-This is nice because we don't need to call manipulate the tracking configuration (e.g. calls to `AddProperty`) for each instance. 
+This is nice because we don't need to manipulate the tracking configuration from the outside (e.g. calls to `AddProperty`) for each instance. 
 
 # Example of stored data
 
 Each tracked object will have its own file where its tracked property values will be saved. Here's an example:
 
-![](http://i.imgur.com/A2LpD2t.png)
+![](http://i.imgur.com/xUVaVMh.png)
 
-We're tracking three objects: AppSettings, MainWindow and a single TabControl. 
+The file name includes the type of the tracked object and the identifier: `[targetObjectType]_[identifier].json`.  
+We can see, we're tracking three objects: AppSettings (id: not specified), MainWindow (id: myWindow) and a single TabControl (id: tabControl). 
 
 # Demos
 
