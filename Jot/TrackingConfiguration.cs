@@ -156,6 +156,12 @@ namespace Jot
             _applied = true;
         }
 
+        public TrackingConfiguration IdentifyAs(string key)
+        {
+            Key = key;
+            return this;
+        }
+
         public TrackingConfiguration AddProperties(params string[] properties)
         {
             foreach (string property in properties)

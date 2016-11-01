@@ -1,4 +1,4 @@
-﻿<Window x:Class="TestWPF.MainWindow"
+﻿<Window x:Class="TestWPF.MainWindow" x:Name="myWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Demo application" Height="350" Width="525">

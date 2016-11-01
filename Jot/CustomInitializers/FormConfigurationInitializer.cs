@@ -24,7 +24,8 @@ namespace Jot.CustomInitializers
 
             configuration
                 .AddProperties<Form>(f => f.Height, f => f.Width, f => f.Top, f => f.Left, f => f.WindowState)
-                .RegisterPersistTrigger(nameof(form.ResizeEnd));
+                .RegisterPersistTrigger(nameof(form.ResizeEnd))
+                .IdentifyAs(form.Name);
 
             configuration.PersistingProperty += (sender, args) =>
             {
