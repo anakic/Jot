@@ -10,12 +10,17 @@ namespace Jot.Storage
         public string StoreFolderPath { get; set; }
 
         public JsonFileStoreFactory()
-            : this(false)
+            : this(true)
         {
         }
 
         public JsonFileStoreFactory(bool perUser)
-            : this(ConstructPath(perUser ? Environment.SpecialFolder.CommonApplicationData : Environment.SpecialFolder.ApplicationData))
+            : this(ConstructPath(perUser ? Environment.SpecialFolder.ApplicationData : Environment.SpecialFolder.CommonApplicationData))
+        {
+        }
+
+        public JsonFileStoreFactory(Environment.SpecialFolder folder)
+            : this (Environment.GetFolderPath(folder))
         {
         }
 
