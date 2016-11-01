@@ -65,7 +65,7 @@
     <Compile Include="TestDataClasses\Foo.cs" />
     <Compile Include="TestDataClasses\Bar.cs" />
     <Compile Include="TestDataClasses\TestTrackingAware.cs" />
-    <Compile Include="Tools\TestClass1ConfigurationInitializer.cs" />
+    <Compile Include="Tools\FooConfigurationInitializer.cs" />
     <Compile Include="Tools\TestPersistTrigger.cs" />
   </ItemGroup>
   <ItemGroup>
