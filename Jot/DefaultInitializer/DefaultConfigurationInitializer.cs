@@ -46,11 +46,6 @@ namespace Jot.DefaultInitializer
             ITrackingAware trackingAwareTarget = target as ITrackingAware;
             if (trackingAwareTarget != null)
                 trackingAwareTarget.InitConfiguration(configuration);
-
-            //allow the object to reqest persistence
-            ITriggerPersist asNotify = target as ITriggerPersist;
-            if (asNotify != null)
-                asNotify.PersistRequired += (s, e) => configuration.Persist();
         }
     }
 }
