@@ -32,7 +32,7 @@ namespace Jot.CustomInitializers
                 //We don't want to restore the form off screeen.
                 //This can happen in case of a multi-display setup i.e. the form was closed on 2nd display, but restored after the 2nd display was disconnected
                 if (args.Property == "Left")
-                    args.Value = Math.Min(Math.Max(0, (double)args.Value), System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width - window.Width);
+                    args.Value = Math.Min(Math.Max(0, (double)args.Value), SystemParameters.VirtualScreenHeight - window.Width);
             };
 
             base.InitializeConfiguration(configuration);

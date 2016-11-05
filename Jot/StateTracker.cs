@@ -93,9 +93,14 @@ namespace Jot
             TrackingConfiguration config = FindExistingConfig(target);
             if (config == null)
             {
-                config = new TrackingConfiguration(target, identifier, this);
+                config = new TrackingConfiguration(target, this);
                 var initializer = FindInitializer(target.GetType());
                 initializer.InitializeConfiguration(config);
+
+                //if the identifier was specified explicitly, it has priority over what the initializer set as the key
+                if (identifier != null)
+                    config.Key = identifier;
+
                 config.CompleteInitialization();
 
                 _trackedObjects.Add(new WeakReference(target));
