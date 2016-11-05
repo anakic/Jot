@@ -5,13 +5,20 @@ using Jot.Storage;
 using Jot.Triggers;
 using Jot.DefaultInitializer;
 using Jot.CustomInitializers;
+using System.Runtime.CompilerServices;
 
 namespace Jot
 {
     public class StateTracker
     {
         ITriggerPersist _autoPersistTrigger;
-        List<TrackingConfiguration> _configurations = new List<TrackingConfiguration>();
+
+        //Weak reference dictionary
+        ConditionalWeakTable<object, TrackingConfiguration> _configurationsDict = new ConditionalWeakTable<object, TrackingConfiguration>();
+
+        //Workaround:
+        //ConditionalWeakTable does not support getting a list of all keys, which we need for a global persist
+        List<WeakReference> _trackedObjects = new List<WeakReference>();
 
         public string Name { get; set; }
         public IStoreFactory StoreFactory { get; set; }
@@ -87,9 +94,12 @@ namespace Jot
             if (config == null)
             {
                 config = new TrackingConfiguration(target, identifier, this);
-                FindInitializer(target.GetType()).InitializeConfiguration(config);
+                var initializer = FindInitializer(target.GetType());
+                initializer.InitializeConfiguration(config);
                 config.CompleteInitialization();
-                _configurations.Add(config);
+
+                _trackedObjects.Add(new WeakReference(target));
+                _configurationsDict.Add(target, config);
             }
             return config;
         }
@@ -104,22 +114,23 @@ namespace Jot
                 return FindInitializer(type.BaseType);
         }
 
-        public void ApplyAllState()
-        {
-            _configurations.ForEach(c => c.Apply());
-        }
-
         public void RunAutoPersist()
         {
-            foreach (TrackingConfiguration config in _configurations.Where(cfg => cfg.AutoPersistEnabled && cfg.TargetReference.IsAlive))
-                config.Persist();
+            foreach (var target in _trackedObjects.Where(o => o.IsAlive).Select(o => o.Target))
+            {
+                TrackingConfiguration configuration;
+                if (_configurationsDict.TryGetValue(target, out configuration) && configuration.AutoPersistEnabled)
+                    configuration.Persist();
+            }
         }
 
         #region private helper methods
 
         private TrackingConfiguration FindExistingConfig(object target)
         {
-            return _configurations.SingleOrDefault(cfg => cfg.TargetReference.Target == target);
+            TrackingConfiguration configuration;
+            _configurationsDict.TryGetValue(target, out configuration);
+            return configuration;
         }
 
         #endregion
