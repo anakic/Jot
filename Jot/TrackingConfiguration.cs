@@ -10,6 +10,8 @@ namespace Jot
 {
     public sealed class TrackingConfiguration
     {
+        public bool IsApplied { get; private set; }
+
         public StateTracker StateTracker { get; private set; }
         public IStore TargetStore { get; private set; }
 
@@ -121,7 +123,6 @@ namespace Jot
             }
         }
 
-        bool _applied = false;
         public void Apply()
         {
             if (TargetReference.IsAlive)
@@ -153,7 +154,7 @@ namespace Jot
 
                 OnStateApplied();
             }
-            _applied = true;
+            IsApplied = true;
         }
 
         public TrackingConfiguration IdentifyAs(string key)
@@ -225,7 +226,7 @@ namespace Jot
 
             var handler = Expression.Lambda(
                     eventInfo.EventHandlerType,
-                    Expression.Call(Expression.Constant(new Action(() => { if (_applied) Persist(); /*don't persist before applying stored value*/ })), "Invoke", Type.EmptyTypes),
+                    Expression.Call(Expression.Constant(new Action(() => { if (IsApplied) Persist(); /*don't persist before applying stored value*/ })), "Invoke", Type.EmptyTypes),
                     parameters)
               .Compile();
 
