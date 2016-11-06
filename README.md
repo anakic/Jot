@@ -158,7 +158,29 @@ All that's needed now to start tracking the object is to call:
 tracker.Configure(target).Apply();
 ```
 
-This is nice because we don't need to manipulate the tracking configuration from the outside (e.g. calls to `AddProperty`) for each instance. 
+This is nice because we don't need to manipulate the tracking configuration from the outside (e.g. calls to `AddProperty`) for each instance.
+
+# IOC integration
+When using an IOC container, many objects in the application will be created by the container. This gives us an opportunity to automatically set up tracking for all created objects by hooking into the container.
+
+For example, with [SimpleInjector](https://simpleinjector.org/index.html) we can do this quite easily, with a single line of code:
+
+``` C#
+var stateTracker = new Jot.StateTracker();
+var container = new SimpleInjector.Container();
+
+//configure tracking and apply previously stored data to all created objects
+container.RegisterInitializer(d => { stateTracker.Configure(d.Instance).Apply(); }, cx => true);
+```
+
+We can now track any property of any object just by putting a [Trackable] attribute on it!** Pretty neat, huh?
+
+### Ways to specify configurations for IOC-created objects
+Since the container does't know anything about how to track specific types, you can specify the tracking configuration for objects created this way in the following ways:
+- `[Trackable]` and `[TrackingKey]` attributes (for types whose code you own)
+- by implementing `ITrackingAware` (for types whose code you own)
+- by adding configuration initializers (for types you don't own, e.g. Window)
+ 
 
 # Example of stored data
 
