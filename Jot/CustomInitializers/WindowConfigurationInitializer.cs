@@ -25,6 +25,7 @@ namespace Jot.CustomInitializers
             configuration
                 .AddProperties<Window>(w => w.Height, w => w.Width, w => w.Top, w => w.Left, w => w.WindowState)
                 .RegisterPersistTrigger(nameof(window.SizeChanged))
+                .RegisterPersistTrigger(nameof(window.LocationChanged))
                 .IdentifyAs(window.Name);
 
             configuration.ApplyingProperty += (sender, args) =>
