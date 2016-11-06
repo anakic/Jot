@@ -9,7 +9,9 @@ namespace Jot.CustomInitializers
     /// </summary>
     public class FormConfigurationInitializer : DefaultConfigurationInitializer
     {
-        //applies to objects of type System.Windows.Forms.Form
+        /// <summary>
+        /// Applies to objects of type System.Windows.Forms.Form
+        /// </summary>
         public override Type ForType { get { return typeof(Form); } }
         
         /// <summary>

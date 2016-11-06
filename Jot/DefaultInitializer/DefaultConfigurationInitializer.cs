@@ -15,8 +15,15 @@ namespace Jot.DefaultInitializer
     /// </summary>
     public class DefaultConfigurationInitializer : IConfigurationInitializer
     {
+        /// <summary>
+        /// Applies to type System.Object
+        /// </summary>
         public virtual Type ForType { get { return typeof(object); } }
 
+        /// <summary>
+        /// Initializes the tracking configuration for a target object
+        /// </summary>
+        /// <param name="configuration"></param>
         public virtual void InitializeConfiguration(TrackingConfiguration configuration)
         {
             object target = configuration.TargetReference.Target;

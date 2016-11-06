@@ -122,7 +122,7 @@ namespace Jot.Tests
         public void UsesConfigurationInitializer()
         {
             var stateTracker1 = CreateStateTracker();
-            stateTracker1.AddConfigurationInitializer(new FooConfigurationInitializer());//add initializer
+            stateTracker1.RegisterConfigurationInitializer(new FooConfigurationInitializer());//add initializer
 
             var testData1 = new Foo() { Double = 123.45f, Int = 456 };
             var cfg1 = stateTracker1.Configure(testData1, "x");
@@ -140,14 +140,14 @@ namespace Jot.Tests
             //The idea: we're relying on FooConfigurationInitializer to initialize the configuration for our Foo object
 
             var stateTracker1 = CreateStateTracker();
-            stateTracker1.AddConfigurationInitializer(new FooConfigurationInitializer());//add initializer for Foo objects
+            stateTracker1.RegisterConfigurationInitializer(new FooConfigurationInitializer());//add initializer for Foo objects
             var testData1 = new Foo() { Double = 123.45f, Int = 456 };
             var cfg1 = stateTracker1.Configure(testData1, "x");
             _trigger.Fire();
             
             var testData2 = new Foo();
             var stateTracker2 = CreateStateTracker();
-            stateTracker2.AddConfigurationInitializer(new FooConfigurationInitializer());//add initializer for Foo objects
+            stateTracker2.RegisterConfigurationInitializer(new FooConfigurationInitializer());//add initializer for Foo objects
             var cfg2 = stateTracker2.Configure(testData2, "x");
             cfg2.Apply();
 
@@ -167,7 +167,7 @@ namespace Jot.Tests
             storeFactoryMoq.Setup(sf => sf.CreateStoreForObject(It.IsAny<string>())).Returns(storeMoq.Object);
 
             var stateTracker1 = new StateTracker(storeFactoryMoq.Object, _trigger);
-            stateTracker1.AddConfigurationInitializer(new FooConfigurationInitializer());//add initializer
+            stateTracker1.RegisterConfigurationInitializer(new FooConfigurationInitializer());//add initializer
 
             var testData1 = new Foo() { Double = 123.45f, Int = 456 };
             var cfg1 = stateTracker1.Configure(testData1, "x");

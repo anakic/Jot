@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Jot.Storage.Stores
 {
+    /// <summary>
+    /// An implementation of IStore that saves data to a json file.
+    /// </summary>
     public class JsonFileStore : PersistentStoreBase
     {
         #region custom serialization (for object type handling)
@@ -62,13 +65,24 @@ namespace Jot.Storage.Stores
         }
         #endregion
 
+        /// <summary>
+        /// The file that will store the target object's data.
+        /// </summary>
         public string FilePath { get; private set; }
 
+        /// <summary>
+        /// Creates a new instance of a JsonFileStore.
+        /// </summary>
+        /// <param name="filePath"></param>
         public JsonFileStore(string filePath)
         {
             FilePath = filePath;
         }
 
+        /// <summary>
+        /// Loads values from the json file into the dictionary cache.
+        /// </summary>
+        /// <returns></returns>
         protected override Dictionary<string, object> LoadValues()
         {
             List<StoreItem> storeItems = null;
@@ -87,9 +101,13 @@ namespace Jot.Storage.Stores
             return storeItems.ToDictionary(item => item.Name, item => item.Value);
         }
 
-        protected override void SaveValues(Dictionary<string, object> _values)
+        /// <summary>
+        /// Stores the values from the dictioanry cache into the json file.
+        /// </summary>
+        /// <param name="values"></param>
+        protected override void SaveValues(Dictionary<string, object> values)
         {
-            var list = _values.Select(kvp => new StoreItem() { Name = kvp.Key, Value = kvp.Value, Type = kvp.Value?.GetType() });
+            var list = values.Select(kvp => new StoreItem() { Name = kvp.Key, Value = kvp.Value, Type = kvp.Value?.GetType() });
             string serialized = JsonConvert.SerializeObject(list, new JsonSerializerSettings() { Formatting = Formatting.Indented, TypeNameHandling=TypeNameHandling.None });
 
             string directory = Path.GetDirectoryName(FilePath);

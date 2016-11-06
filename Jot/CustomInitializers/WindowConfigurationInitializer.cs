@@ -9,7 +9,9 @@ namespace Jot.CustomInitializers
     /// </summary>
     public class WindowConfigurationInitializer : DefaultConfigurationInitializer
     {
-        //applies to object of type System.windows.Window
+        /// <summary>
+        /// Applies to object of type System.windows.Window
+        /// </summary>
         public override Type ForType { get { return typeof(Window); } }
 
         /// <summary>
