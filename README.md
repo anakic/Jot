@@ -173,7 +173,7 @@ var container = new SimpleInjector.Container();
 container.RegisterInitializer(d => { stateTracker.Configure(d.Instance).Apply(); }, cx => true);
 ```
 
-We can now track any property of any object just by putting a [Trackable] attribute on it!** Pretty neat, huh?
+We can now track any property of any object just by putting a [Trackable] attribute on it! Pretty neat, huh?
 
 ### Ways to specify configurations for IOC-created objects
 Since the container does't know anything about how to track specific types, you can specify the tracking configuration for objects created this way in the following ways:
