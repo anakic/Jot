@@ -57,14 +57,16 @@ namespace Jot.Tests
             //save some data
             var testData1 = new Foo() { Double = 123.45, Int=456, Timespan = new TimeSpan(99,99,99) };
             CreateStateTracker()
-                .Configure(testData1, "x")
+                .Configure(testData1)
+                .IdentifyAs("x")
                 .AddProperties(nameof(testData1.Double), nameof(testData1.Int), nameof(testData1.Timespan))
                 .Persist();
 
             //simulate application restart and read the saved data
             var testData2 = new Foo();
             CreateStateTracker()
-                .Configure(testData2, "x")
+                .Configure(testData2)
+                .IdentifyAs("x")
                 .AddProperties(nameof(testData2.Double), nameof(testData2.Int), nameof(testData2.Timespan))
                 .Apply();
 
@@ -80,14 +82,16 @@ namespace Jot.Tests
             //save some data
             var testData1 = new Foo() { Double = 123.45, Int = 456, Timespan = new TimeSpan(99, 99, 99) };
             CreateStateTracker()
-                .Configure(testData1, "x")
+                .Configure(testData1)
+                .IdentifyAs("x")
                 .AddProperties(nameof(testData1.Double), nameof(testData1.Int))//not saving the "TimeSpan" property
                 .Persist();
 
             //simulate application restart and read the saved data
             var testData2 = new Foo();
             CreateStateTracker()
-                .Configure(testData2, "x")
+                .Configure(testData2)
+                .IdentifyAs("x")
                 .AddProperties(nameof(testData2.Double), nameof(testData2.Int))
                 .Apply();
 
@@ -102,14 +106,16 @@ namespace Jot.Tests
             //save some data
             var testData1 = new Foo() { Double = 123.45, Int = 456, Timespan = new TimeSpan(99, 99, 99) };
             CreateStateTracker()
-                .Configure(testData1, "x")
+                .Configure(testData1)
+                .IdentifyAs("x")
                 .AddProperties(nameof(testData1.Double), nameof(testData1.Int))//not saving the "TimeSpan" property
                 .Persist();
 
             //simulate application restart and read the saved data
             var testData2 = new Foo();
             CreateStateTracker()
-                .Configure(testData2, "some different name")
+                .Configure(testData2)
+                .IdentifyAs("some different name")
                 .AddProperties(nameof(testData2.Double), nameof(testData2.Int))
                 .Apply();
 
@@ -125,7 +131,7 @@ namespace Jot.Tests
             stateTracker1.RegisterConfigurationInitializer(new FooConfigurationInitializer());//add initializer
 
             var testData1 = new Foo() { Double = 123.45f, Int = 456 };
-            var cfg1 = stateTracker1.Configure(testData1, "x");
+            var cfg1 = stateTracker1.Configure(testData1).IdentifyAs("x");
             Assert.AreEqual(5, cfg1.TrackedProperties.Count);
             Assert.IsTrue(cfg1.TrackedProperties.ContainsKey("A"));
             Assert.IsTrue(cfg1.TrackedProperties.ContainsKey("B"));
@@ -142,13 +148,13 @@ namespace Jot.Tests
             var stateTracker1 = CreateStateTracker();
             stateTracker1.RegisterConfigurationInitializer(new FooConfigurationInitializer());//add initializer for Foo objects
             var testData1 = new Foo() { Double = 123.45f, Int = 456 };
-            var cfg1 = stateTracker1.Configure(testData1, "x");
+            var cfg1 = stateTracker1.Configure(testData1).IdentifyAs("x");
             _trigger.Fire();
             
             var testData2 = new Foo();
             var stateTracker2 = CreateStateTracker();
             stateTracker2.RegisterConfigurationInitializer(new FooConfigurationInitializer());//add initializer for Foo objects
-            var cfg2 = stateTracker2.Configure(testData2, "x");
+            var cfg2 = stateTracker2.Configure(testData2).IdentifyAs("x");
             cfg2.Apply();
 
             //verify that the properties of the original data object and the restored data object are the same
@@ -170,7 +176,7 @@ namespace Jot.Tests
             stateTracker1.RegisterConfigurationInitializer(new FooConfigurationInitializer());//add initializer
 
             var testData1 = new Foo() { Double = 123.45f, Int = 456 };
-            var cfg1 = stateTracker1.Configure(testData1, "x");
+            var cfg1 = stateTracker1.Configure(testData1).IdentifyAs("x");
 
             //verify changes were committed once the persist trigger was fired
             storeMoq.Verify(s => s.CommitChanges(), Times.Never);

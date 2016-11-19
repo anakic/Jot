@@ -92,7 +92,7 @@ namespace Jot
         }
 
         /// <summary>
-        /// Registers an object that will initializer the configuration for all instances of a type.
+        /// Registers an object that will initialize the configuration for all instances of a type.
         /// </summary>
         /// <remarks>
         /// Only the most specific initialier will be used (for the most derived type). 
@@ -117,30 +117,12 @@ namespace Jot
         /// <returns>The tracking configuration object.</returns>
         public TrackingConfiguration Configure(object target)
         {
-            return Configure(target, null);
-        }
-
-        /// <summary>
-        /// Creates or retrieves the tracking configuration for the speficied object.
-        /// </summary>
-        /// <param name="target"></param>
-        /// <param name="identifier"></param>
-        /// <returns></returns>
-        public TrackingConfiguration Configure(object target, string identifier)
-        {
             TrackingConfiguration config = FindExistingConfig(target);
             if (config == null)
             {
                 config = new TrackingConfiguration(target, this);
                 var initializer = FindInitializer(target.GetType());
                 initializer.InitializeConfiguration(config);
-
-                //if the identifier was specified explicitly, it has priority over what the initializer set as the key
-                if (identifier != null)
-                    config.Key = identifier;
-
-                config.CompleteInitialization();
-
                 _trackedObjects.Add(new WeakReference(target));
                 _configurationsDict.Add(target, config);
             }

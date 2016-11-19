@@ -27,11 +27,6 @@
         /// <param name="key">The key that identifies the value to return.</param>
         /// <returns>The value stored under the specified key</returns>
         object Get(string key);
-
-        /// <summary>
-        /// Initializes the data store. For a file-based store, this is where data from the file should be loaded.
-        /// </summary>
-        void Initialize();
         /// <summary>
         /// Commits the new data to the store. For a file-based store, this is where data should be written to the file.
         /// </summary>

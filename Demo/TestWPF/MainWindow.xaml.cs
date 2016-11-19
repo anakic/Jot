@@ -1,18 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using TestWPF.Settings;
-using Jot;
 
 namespace TestWPF
 {
@@ -40,8 +29,10 @@ namespace TestWPF
             Services.Tracker.Configure(this).Apply();
 
             //track tabcontrol's selected index
-            Services.Tracker.Configure(tabControl, tabControl.Name)
-                .AddProperties<TabControl>(tc => tc.SelectedIndex).Apply();
+            Services.Tracker.Configure(tabControl)
+                .IdentifyAs(tabControl.Name)
+                .AddProperties<TabControl>(tc => tc.SelectedIndex)
+                .Apply();
         }
     }
 }

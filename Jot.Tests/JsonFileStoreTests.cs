@@ -122,7 +122,6 @@ namespace Jot.Tests
         private JsonFileStore CreateStore()
         {
             var store = new JsonFileStore(_testFile);
-            store.Initialize();
             return store;
         }
     }

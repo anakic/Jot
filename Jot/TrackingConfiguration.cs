@@ -124,25 +124,15 @@ namespace Jot
         }
 
         /// <summary>
-        /// Initialize is called by StateTracker after the configuration object has been prepared (properties added, triggers set etc...).
-        /// </summary>
-        internal void CompleteInitialization()
-        {
-            object target = TargetReference.Target;
-
-            //use the object type plus the key to identify the object store
-            string storeName = Key == null ? target.GetType().Name : string.Format("{0}_{1}", target.GetType().Name, Key);
-            TargetStore = StateTracker.StoreFactory.CreateStoreForObject(storeName);
-            TargetStore.Initialize();
-        }
-
-        /// <summary>
         /// Reads the data from the tracked properties and saves it to the data store for the tracked object.
         /// </summary>
         public void Persist()
         {
             if (TargetReference.IsAlive)
             {
+                if (TargetStore == null)
+                    TargetStore = InitStore();
+
                 foreach (string propertyName in TrackedProperties.Keys)
                 {
                     var value = TrackedProperties[propertyName].Getter(TargetReference.Target);
@@ -175,6 +165,9 @@ namespace Jot
         {
             if (TargetReference.IsAlive)
             {
+                if (TargetStore == null)
+                    TargetStore = InitStore();
+
                 foreach (string propertyName in TrackedProperties.Keys)
                 {
                     TrackedPropertyInfo descriptor = TrackedProperties[propertyName];
@@ -214,6 +207,9 @@ namespace Jot
         /// <returns></returns>
         public TrackingConfiguration IdentifyAs(string key)
         {
+            if (TargetStore != null)
+                throw new InvalidOperationException("Can't set key after TargetStore has been set (which happens the first time Apply() or Persist() is called).");
+
             Key = key;
             return this;
         }
@@ -376,6 +372,14 @@ namespace Jot
             else
                 membershipExpression = exp.Body as MemberExpression;
             return membershipExpression.Member.Name;
+        }
+
+        private IStore InitStore()
+        {
+            object target = TargetReference.Target;
+            //use the object type plus the key to identify the object store
+            string storeName = Key == null ? target.GetType().Name : string.Format("{0}_{1}", target.GetType().Name, Key);
+            return StateTracker.StoreFactory.CreateStoreForObject(storeName);
         }
 
         private TrackedPropertyInfo CreateDescriptor(string propertyName, bool isDefaultSpecifier, object defaultValue)
