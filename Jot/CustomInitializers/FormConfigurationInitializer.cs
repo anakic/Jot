@@ -1,5 +1,6 @@
 ﻿using Jot.DefaultInitializer;
 using System;
+using System.Windows;
 using System.Windows.Forms;
 
 namespace Jot.CustomInitializers
@@ -27,6 +28,7 @@ namespace Jot.CustomInitializers
             configuration
                 .AddProperties<Form>(f => f.Height, f => f.Width, f => f.Top, f => f.Left, f => f.WindowState)
                 .RegisterPersistTrigger(nameof(form.ResizeEnd))
+                .RegisterPersistTrigger(nameof(form.LocationChanged))
                 .IdentifyAs(form.Name);
 
             configuration.PersistingProperty += (sender, args) =>
@@ -40,7 +42,7 @@ namespace Jot.CustomInitializers
                 //We don't want to restore the form off screeen.
                 //This can happen in case of a multi-display setup i.e. the form was closed on 2nd display, but restored after the 2nd display was disconnected
                 if (args.Property == "Left")
-                    args.Value = Math.Min(Math.Max(0, (int)args.Value), SystemInformation.VirtualScreen.Width - form.Width);
+                    args.Value = (int)Math.Min(Math.Max(SystemParameters.VirtualScreenLeft, (int)args.Value), SystemParameters.VirtualScreenWidth - form.Width);
             };
 
             base.InitializeConfiguration(configuration);
