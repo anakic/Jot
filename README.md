@@ -37,9 +37,9 @@ public MainWindow()
 
 The above code is simple enough and would certainly work for most cases, but for real world use, we would need to handle a few more edge cases. 
 
-Jot already comes with configuration presets for tracking `Window` and `Form` objects. These presets are enabled by default, but we can certainly change/remove them or supply our own presets for any type (see [ConfigurationInitializers](#configuration-initializers)).
+Jot comes with a few built-in objects that take care of setting up tracking for `Window` and `Form` objects. These are called "[configuration initializers](#configuration-initializers)". They are enabled by default, but we can certainly change/remove them or supply our own for any type.
 
-Since the preset for `Window` objects is included by default, all we need to do to set up tracking for a `Window` is this:
+This means that all we need to do to track a `Window` is this:
 
 **Step 2. revisited - final version**
 
@@ -58,7 +58,7 @@ public MainWindow()
 
 ```
 
-This will track the window's size, location and window state. The deafult tracking configuration for `Window` objects is defined in [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs).
+The tracking configuration for `Window` objects is initialized by the built-in [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs) so we didn't have to do it manually. It sets up tracking for the window's size, location and window state, and also sets up some validation for edge cases. 
  
 
 ## Where & when data gets stored
@@ -95,17 +95,17 @@ The StateTracker uses an object that implements `ITriggerPersist` to get notifie
 
 The only built-in implementation of this interface is the `DesktopPersistTrigger` class which fires the `PersistRequired` event when a desktop application is about to shut down. 
 
-> Note: Objects that don't survive until application shutdown should be persisted earlier. This can be done by specifying the persist trigger (`RegisterPersistTrigger`) or by explicitly calling Persist on their `TrackingConfiguration` object when appropriate.  
+> Note: Objects that don't survive until application shutdown should be persisted earlier. This can be done by specifying the persist trigger (`RegisterPersistTrigger`) or by explicitly calling `Persist()` on their `TrackingConfiguration` object when appropriate.  
 
 
 ## Which properties of which object to track?
-Since Jot doesn't know anything about our objects, we need to introduce them and tell Jot which property of which object we want to track.
+Since Jot doesn't know anything about our objects, we need to introduce them and tell Jot which properties of which object we want to track.
 
 There are 4 ways of initializing `TrackingConfiguration` objects, each being advantageous for certain scenarios. 
 
 Here they are...    
 
-### 1. Direct manipulation of TrackingConfiguration
+### Way 1: Direct manipulation of TrackingConfiguration
 
 The most basic way to manipulate the TrackingConfiguration is directly.
 
@@ -128,7 +128,7 @@ Once we've set up the tracking configuration, we just need to call `Apply()` on 
 
 1. Per-instance, we need to repeat this for all instances we want to track
 
-### 2. Configuration initializers
+### Way 2: Configuration initializers
 
 Say we want to track all window objects in our application in the same way. We don't want to repeat the TrackingConfiguration setup for each window that our application creates. 
 
@@ -185,7 +185,7 @@ Jot includes these configuration initializers out of the box:
 1. Requires a bit of code to set up
 
 
-### 3. Using tracking attributes
+### Way 3: Using tracking attributes
 
 ``` C#
 public class GeneralSettings
@@ -221,7 +221,7 @@ tracker.Configure(settings).Apply();
 
 1. Relies on `DefaultConfigurationInitializer` being present in the StateTracker (which it is by default).
 
-### 4. Using the ITrackingAware interface
+### Way 4: Using the ITrackingAware interface
 ``` C#
 public class GeneralSettings : ITrackingAware
 	{
@@ -241,16 +241,19 @@ All that's needed now to start tracking the object is to call:
 tracker.Configure(settings).Apply();
 ```
 
-**Advantages**: 
+**Advantages**:
+ 
 1. Class is self descriptive about tracking
 2. Centralized setup for tracking all instances of a type
 2. More flexibility compared to using attributes 
 
 **Limitations**: 
+
 1. Not as simple as applying attributes 
 2. We need to own the code of the target type (to place the attributes)
 
 **Notes**: 
+
 1. Relies on `DefaultConfigurationInitializer` being present in the StateTracker (which it is by default).
 
 # IOC integration
