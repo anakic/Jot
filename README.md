@@ -121,8 +121,11 @@ This is the usual pattern:
 Once we've set up the tracking configuration, we just need to call `Apply()` on it. This will cause it to look up stored data for the object, and apply any previously stored data to its tracked properties.
 
 **Advantages**: 
+
 1. Flexibility
+
 **Limitations**: 
+
 1. Per-instance, we need to repeat this for all instances we want to track
 
 ### 2. Configuration initializers
@@ -172,10 +175,13 @@ Jot includes these configuration initializers out of the box:
 - [DefaultConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/DefaultInitializer/DefaultConfigurationInitializer.cs) (enables `[Trackable]` attributes and `ITrackingAware` for all objects)
 
 **Advantages**: 
+
 1. Flexibility
 2. Centralized setup for all instances of a type
 2. We don't need to own the code of the target type
+
 **Disadvantages**: 
+
 1. Requires a bit of code to set up
 
 
@@ -201,15 +207,18 @@ tracker.Configure(settings).Apply();
 
 
 **Advantages**: 
+
 1. Class is self descriptive about tracking
 2. Centralized setup for all instances of a type
 2. Simple
 
 **Limitations**: 
+
 1. Not as flexible as using `ITrackingAware`
 2. We need to own the code of the target type (to place the attributes)
 
 **Notes**: 
+
 1. Relies on `DefaultConfigurationInitializer` being present in the StateTracker (which it is by default).
 
 ### 4. Using the ITrackingAware interface
