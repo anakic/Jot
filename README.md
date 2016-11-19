@@ -266,15 +266,13 @@ var container = new SimpleInjector.Container();
 container.RegisterInitializer(d => { stateTracker.Configure(d.Instance).Apply(); }, cx => true);
 ```
 
-Since the container does't know anything about how to track specific types, we can specify the tracking configuration for target objects by:
+Since the container does't know how to set up tracking for specific types, we need to spefify the configurations in one or more of the following ways:
 - using configuration initializers
 - using `[Trackable]` and `[TrackingKey]` attributes
 - implementing `ITrackingAware` 
 
-So basically, **we can now track any property of any object just by putting a [Trackable] attribute on it**! Pretty neat, huh?
+To summarize what this means: with the above few lines of code in place, **we can now track any property of any object just by putting a [Trackable] attribute on it**! Pretty neat, huh?
 
-
- 
 
 # Example of stored data
 
