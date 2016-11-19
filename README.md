@@ -19,14 +19,15 @@ static class Services
     public static StateTracker Tracker = new StateTracker();//we can use constructor overloads to configure where & when data is stored
 }
 ```
-**Step 2**: apply tracking 
+**Step 2**: Set up tracking 
 
 ``` C#
 public MainWindow()
 {
     InitializeComponent();
     
-	Services.Tracker.Configure(this, "main window")//the object to track and a string by which to identify it
+	Services.Tracker.Configure(this)//the object to track
+		.IdenitifyAs("main window")//a string by which to identify the target object
         .AddProperties<Window>(w => w.Height, w => w.Width, w => w.Top, w => w.Left, w => w.WindowState)//properties to track
         .RegisterPersistTrigger(nameof(SizeChanged))//when to persist data to store
         .Apply();//apply any previously stored data
@@ -57,7 +58,7 @@ public MainWindow()
 
 ```
 
-This will track the window's size, location and window state. The tracking configuration preset is defined in [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs).
+This will track the window's size, location and window state. The deafult tracking configuration for `Window` objects is defined in [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs).
  
 
 ## Where & when data gets stored
@@ -81,7 +82,7 @@ By default, Jot stores data in .json files in the following folder: `%AppData%\[
 var tracker = new StateTracker() { StoreFactory = new JsonFileStoreFactory(false) };//true: per-user, false: per-machine
 ```
 
-Or you can give it a specific folder like so:
+Or you can specify a folder path:
 
 ``` C#
 var tracker = new StateTracker() { StoreFactory = new JsonFileStoreFactory(@"c:\example\path\") };
@@ -97,34 +98,88 @@ The only built-in implementation of this interface is the `DesktopPersistTrigger
 > Note: Objects that don't survive until application shutdown should be persisted earlier. This can be done by specifying the persist trigger (`RegisterPersistTrigger`) or by explicitly calling Persist on their `TrackingConfiguration` object when appropriate.  
 
 
-## Configuration initializers
+## Which properties of which object to track?
+Since Jot doesn't know anything about our objects, we need to introduce them and tell Jot which property of which object we want to track.
 
-We've seen we can manipulate the tracking configuration of individual objects, like so:
+There are 4 ways of initializing `TrackingConfiguration` objects, each being advantageous for certain scenarios. 
+
+Here they are...    
+
+### 1. Direct manipulation of TrackingConfiguration
+
+The most basic way to manipulate the TrackingConfiguration is directly.
+
+This is the usual pattern:
 
 ``` C#
-	tracker.Configure(target, "some id")
+	tracker.Configure(target)
+		.IdentifyAs("some id")
 		.AddProperties(...)
 		.RegisterPersistTrigger(...)
-``` 
+```
 
-But, we can also configure tracking for **all instances of a given type** by using configuration initializers. 
+Once we've set up the tracking configuration, we just need to call `Apply()` on it. This will cause it to look up stored data for the object, and apply any previously stored data to its tracked properties.
 
-We do this by implementing [IConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/IConfigurationInitializer.cs) and registering our implementation with the StateTracker by calling `StateTracker.AddConfigurationInitializer(cfgInitializerForFoo)`.
+**Advantages**: 
+1. Flexibility
+**Limitations**: 
+1. Per-instance, we need to repeat this for all instances we want to track
 
-You can see (and modify) the included initializers in the `stateTracker.ConfigurationInitializers` property.
+### 2. Configuration initializers
+
+Say we want to track all window objects in our application in the same way. We don't want to repeat the TrackingConfiguration setup for each window that our application creates. 
+
+With configuration initializers we can configure tracking for **all instances of a given (base) type**, even if we don't own the code of that type. 
+
+For example, here's how we might create a configuration initializer for TabControl objects:
+
+``` C#
+public class TabControlCfgInitializer : IConfigurationInitializer
+{
+    public Type ForType
+    {
+        get
+        {
+            return typeof(TabControl);
+        }
+    }
+
+    public void InitializeConfiguration(TrackingConfiguration configuration)
+    {
+        configuration
+            .AddProperties(nameof(TabControl.SelectedIndex))
+            .RegisterPersistTrigger(nameof(TabControl.SelectedIndexChanged));
+    }
+}
+```
+
+We can register it like so:
+
+``` C#
+_tracker.RegisterConfigurationInitializer(new TabControlCfgInitializer());
+```
+
+Now when we want to track a TabControl, all we need to do is:
+``` C#
+_tracker.Configure(tabControl1).Apply();
+```
+
+This is good because, now the `StateTracker` knows how to track `TabControl` objects, without us having to repeat the configuration setup for every TabControl instance.   
 
 Jot includes these configuration initializers out of the box:
-- [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs)
-- [FormConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/FormConfigurationInitializer.cs)
-- [DefaultConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/DefaultInitializer/DefaultConfigurationInitializer.cs)
+- [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs) (for WPF Window objects)
+- [FormConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/FormConfigurationInitializer.cs) (for WinForms Form objects)
+- [DefaultConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/DefaultInitializer/DefaultConfigurationInitializer.cs) (enables `[Trackable]` attributes and `ITrackingAware` for all objects)
 
-The first two initialize tracking configurations for `Window` and `Form` objects so we don't have to do it manually. They're simple enough to be used as examples for implementing your own initializers.
+**Advantages**: 
+1. Flexibility
+2. Centralized setup for all instances of a type
+2. We don't need to own the code of the target type
+**Disadvantages**: 
+1. Requires a bit of code to set up
 
-The `DefaultConfigurationInitializer` is applicable for type `object`, so it gets used for all objects that don't have a more specific initializer. It enables objects to use `[Trackable]` and `[TrackingKey]` attributes and the `ITrackingAware` interface to be self descriptive about how they wish to be tracked.
 
-The `DefaultConfigurationInitializer` is included by default in the `StateTracker` so you can use the attributes and `ITrackingAware` in your classes and they will be honored.
-
-### Example: Using tracking attributes
+### 3. Using tracking attributes
 
 ``` C#
 public class GeneralSettings
@@ -138,7 +193,26 @@ public class GeneralSettings
 }
 ```
 
-### Example: Using the ITrackingAware interface
+All that's needed now to start tracking the object is: 
+
+``` C#
+tracker.Configure(settings).Apply();
+```
+
+
+**Advantages**: 
+1. Class is self descriptive about tracking
+2. Centralized setup for all instances of a type
+2. Simple
+
+**Limitations**: 
+1. Not as flexible as using `ITrackingAware`
+2. We need to own the code of the target type (to place the attributes)
+
+**Notes**: 
+1. Relies on `DefaultConfigurationInitializer` being present in the StateTracker (which it is by default).
+
+### 4. Using the ITrackingAware interface
 ``` C#
 public class GeneralSettings : ITrackingAware
 	{
@@ -155,10 +229,20 @@ public class GeneralSettings : ITrackingAware
 All that's needed now to start tracking the object is to call: 
 
 ``` C#
-tracker.Configure(target).Apply();
+tracker.Configure(settings).Apply();
 ```
 
-This is nice because we don't need to manipulate the tracking configuration from the outside (e.g. calls to `AddProperty`) for each instance.
+**Advantages**: 
+1. Class is self descriptive about tracking
+2. Centralized setup for tracking all instances of a type
+2. More flexibility compared to using attributes 
+
+**Limitations**: 
+1. Not as simple as applying attributes 
+2. We need to own the code of the target type (to place the attributes)
+
+**Notes**: 
+1. Relies on `DefaultConfigurationInitializer` being present in the StateTracker (which it is by default).
 
 # IOC integration
 When using an IOC container, many objects in the application will be created by the container. This gives us an opportunity to automatically set up tracking for all created objects by hooking into the container.
@@ -173,13 +257,14 @@ var container = new SimpleInjector.Container();
 container.RegisterInitializer(d => { stateTracker.Configure(d.Instance).Apply(); }, cx => true);
 ```
 
-We can now track any property of any object just by putting a [Trackable] attribute on it! Pretty neat, huh?
+Since the container does't know anything about how to track specific types, we can specify the tracking configuration for target objects by:
+- using configuration initializers
+- using `[Trackable]` and `[TrackingKey]` attributes
+- implementing `ITrackingAware` 
 
-### Ways to specify configurations for IOC-created objects
-Since the container does't know anything about how to track specific types, you can specify the tracking configuration for objects created this way in the following ways:
-- `[Trackable]` and `[TrackingKey]` attributes (for types whose code you own)
-- by implementing `ITrackingAware` (for types whose code you own)
-- by adding configuration initializers (for types you don't own, e.g. Window)
+So basically, **we can now track any property of any object just by putting a [Trackable] attribute on it**! Pretty neat, huh?
+
+
  
 
 # Example of stored data
