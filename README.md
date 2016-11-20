@@ -64,9 +64,11 @@ The tracking configuration for `Window` objects is initialized by the built-in [
 ### Compared to using a .settings file
 
 Step 1: define settings
+
 ![](http://www.codeproject.com/KB/cs/475498/settings.jpg)
 
 Step 2: Apply stored data to the window properties
+
 ``` C#
 public MainWindow()
 {
@@ -98,6 +100,7 @@ protected override void OnClosed(EventArgs e)
     base.OnClosed(e);
 }     
 ```
+
 This is quite a bit of work, even for a single window. Imagine we have 10 resizable/movable elements of the UI. The settings file would quickly become a jungle of similarly named properties.
 
 Also notice how many times we mention e.g. "Left" - a total of 5 times, compared to just once, using Jot.
