@@ -59,7 +59,48 @@ public MainWindow()
 ```
 
 The tracking configuration for `Window` objects is initialized by the built-in [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs) so we didn't have to do it manually. It sets up tracking for the window's size, location and window state, and also sets up some validation for edge cases. 
- 
+
+
+### Compared to using a .settings file
+
+Step 1: define settings
+![](http://www.codeproject.com/KB/cs/475498/settings.jpg)
+
+Step 2: Apply stored data to the window properties
+``` C#
+public MainWindow()
+{
+    InitializeComponent();
+
+    this.Left = MySettings.Default.MainWindowLeft;
+    this.Top = MySettings.Default.MainWindowTop;
+    this.Width = MySettings.Default.MainWindowWidth;
+    this.Height = MySettings.Default.MainWindowHeight;
+    this.WindowState = 
+      MySettings.Default.MainWindowWindowState;
+} 
+```
+
+Step 3: Persist updated data before the window is closed
+
+``` C#
+protected override void OnClosed(EventArgs e)
+{
+    MySettings.Default.MainWindowLeft = this.Left;
+    MySettings.Default.MainWindowTop = this.Top;
+    MySettings.Default.MainWindowWidth = this.Width;
+    MySettings.Default.MainWindowHeight = this.Height;
+    MySettings.Default.MainWindowWindowState = 
+               this.WindowState;
+
+    MySettings.Default.Save();
+
+    base.OnClosed(e);
+}     
+```
+This is quite a bit of work, even for a single window. Imagine we have 10 resizable/movable elements of the UI. The settings file would quickly become a jungle of similarly named properties.
+
+Also notice how many times we mention e.g. "Left" - a total of 5 times, compared to just once, using Jot.
 
 ## Where & when data gets stored
 
