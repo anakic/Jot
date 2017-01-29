@@ -40,6 +40,12 @@ namespace Jot
         public string Key { get; set; }
 
         /// <summary>
+        /// The identity of the target. This severs to identify which stored data belongs to which object. If not specified,
+        /// check out the Key definition. If specified the Key is used to indetification. In case Key is not defined, this parameter is ignored.
+        /// </summary>
+        public bool IncludeClassName { get; set; } = true;
+
+        /// <summary>
         /// A dictioanary containing the tracked properties.
         /// </summary>
         public Dictionary<string, TrackedPropertyInfo> TrackedProperties { get; set; } = new Dictionary<string, TrackedPropertyInfo>();
@@ -205,12 +211,14 @@ namespace Jot
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public TrackingConfiguration IdentifyAs(string key)
+        public TrackingConfiguration IdentifyAs(string key, bool includeClassName = true)
         {
             if (TargetStore != null)
                 throw new InvalidOperationException("Can't set key after TargetStore has been set (which happens the first time Apply() or Persist() is called).");
 
             Key = key;
+            IncludeClassName = includeClassName;
+            
             return this;
         }
 
@@ -378,7 +386,7 @@ namespace Jot
         {
             object target = TargetReference.Target;
             //use the object type plus the key to identify the object store
-            string storeName = Key == null ? target.GetType().Name : string.Format("{0}_{1}", target.GetType().Name, Key);
+            string storeName = Key == null ? target.GetType().Name : IncludeClassName == true ? string.Format("{0}_{1}", target.GetType().Name, Key) : Key;
             return StateTracker.StoreFactory.CreateStoreForObject(storeName);
         }
 
