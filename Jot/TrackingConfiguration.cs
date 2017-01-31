@@ -40,16 +40,8 @@ namespace Jot
         public string Key { get; set; }
 
         /// <summary>
-        /// The identity of the target. This severs to identify which stored data belongs to which object. 
-        /// Defines format of store name.
+        /// Defines format of store name. Default value is TypeNameAndKey. In that case the storename is "{typename}_{key}".
         /// </summary>
-        public enum NamingScheme
-        {
-            TypeNameAndKey, //predefined
-            KeyAndTypeName,
-            KeyOnly,
-            TypeNameOnly
-        }
         public NamingScheme StoreNamingScheme { get; set; } = NamingScheme.TypeNameAndKey;
 
         /// <summary>
@@ -392,14 +384,14 @@ namespace Jot
         private IStore InitStore()
         {
             object target = TargetReference.Target;
-            //use the object type plus the key to identify the object store
-            string storeName = target.GetType().Name;
+
+            //use the object type plus the key to identify the object store based on NamingScheme
+            string storeName;            
             switch (StoreNamingScheme)
             {
-                case NamingScheme.TypeNameAndKey: storeName = string.Format("{0}_{1}", target.GetType().Name, Key); break;
                 case NamingScheme.KeyOnly: storeName = Key; break;
-                case NamingScheme.KeyAndTypeName: storeName = string.Format("{0}_{1}", Key, target.GetType().Name); break;
-                case NamingScheme.TypeNameOnly: storeName = target.GetType().Name; break;
+                //default is reserved for NamingScheme.TypeNameAndKey
+                default: storeName = Key == null ? target.GetType().Name : string.Format("{0}_{1}", target.GetType().Name, Key); break;
             }
             return StateTracker.StoreFactory.CreateStoreForObject(storeName);
         }
