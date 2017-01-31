@@ -35,15 +35,22 @@ namespace Jot
 
         /// <summary>
         /// The identity of the target. This severs to identify which stored data belongs to which object. If not specified,
-        /// only the type name is used, which is fine for singletons.
+        /// only the type name is used, which is fine for singletons. (check out NamingScheme)
         /// </summary>
         public string Key { get; set; }
 
         /// <summary>
-        /// The identity of the target. This severs to identify which stored data belongs to which object. If not specified,
-        /// check out the Key definition. If specified the Key is used to indetification. In case Key is not defined, this parameter is ignored.
+        /// The identity of the target. This severs to identify which stored data belongs to which object. 
+        /// Defines format of store name.
         /// </summary>
-        public bool IncludeClassName { get; set; } = true;
+        public enum NamingScheme
+        {
+            TypeNameAndKey, //predefined
+            KeyAndTypeName,
+            KeyOnly,
+            TypeNameOnly
+        }
+        public NamingScheme StoreNamingScheme { get; set; } = NamingScheme.TypeNameAndKey;
 
         /// <summary>
         /// A dictioanary containing the tracked properties.
@@ -211,13 +218,13 @@ namespace Jot
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public TrackingConfiguration IdentifyAs(string key, bool includeClassName = true)
+        public TrackingConfiguration IdentifyAs(string key, NamingScheme storeNamingScheme = NamingScheme.TypeNameAndKey)
         {
             if (TargetStore != null)
                 throw new InvalidOperationException("Can't set key after TargetStore has been set (which happens the first time Apply() or Persist() is called).");
 
             Key = key;
-            IncludeClassName = includeClassName;
+            StoreNamingScheme = storeNamingScheme;
             
             return this;
         }
@@ -386,7 +393,14 @@ namespace Jot
         {
             object target = TargetReference.Target;
             //use the object type plus the key to identify the object store
-            string storeName = Key == null ? target.GetType().Name : IncludeClassName == true ? string.Format("{0}_{1}", target.GetType().Name, Key) : Key;
+            string storeName = target.GetType().Name;
+            switch (StoreNamingScheme)
+            {
+                case NamingScheme.TypeNameAndKey: storeName = string.Format("{0}_{1}", target.GetType().Name, Key); break;
+                case NamingScheme.KeyOnly: storeName = Key; break;
+                case NamingScheme.KeyAndTypeName: storeName = string.Format("{0}_{1}", Key, target.GetType().Name); break;
+                case NamingScheme.TypeNameOnly: storeName = target.GetType().Name; break;
+            }
             return StateTracker.StoreFactory.CreateStoreForObject(storeName);
         }
 
