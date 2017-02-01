@@ -11,7 +11,13 @@ namespace Jot
     /// </summary>
     public enum NamingScheme
     {
+        /// <summary>
+        /// {TypeName}_{key}
+        /// </summary>
         TypeNameAndKey,
+        /// <summary>
+        /// {key}
+        /// </summary>
         KeyOnly,
     }
 }

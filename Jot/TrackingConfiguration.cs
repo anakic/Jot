@@ -209,6 +209,7 @@ namespace Jot
         /// to what object. Otherwise, they will use the same data which is usually not what you want.
         /// </summary>
         /// <param name="key"></param>
+        /// <param name="storeNamingScheme"></param>
         /// <returns></returns>
         public TrackingConfiguration IdentifyAs(string key, NamingScheme storeNamingScheme = NamingScheme.TypeNameAndKey)
         {
