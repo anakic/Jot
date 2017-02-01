@@ -35,9 +35,14 @@ namespace Jot
 
         /// <summary>
         /// The identity of the target. This severs to identify which stored data belongs to which object. If not specified,
-        /// only the type name is used, which is fine for singletons.
+        /// only the type name is used, which is fine for singletons. (check out NamingScheme)
         /// </summary>
         public string Key { get; set; }
+
+        /// <summary>
+        /// Defines format of store name. Default value is TypeNameAndKey. In that case the storename is "{typename}_{key}".
+        /// </summary>
+        public NamingScheme StoreNamingScheme { get; set; } = NamingScheme.TypeNameAndKey;
 
         /// <summary>
         /// A dictioanary containing the tracked properties.
@@ -204,13 +209,16 @@ namespace Jot
         /// to what object. Otherwise, they will use the same data which is usually not what you want.
         /// </summary>
         /// <param name="key"></param>
+        /// <param name="storeNamingScheme"></param>
         /// <returns></returns>
-        public TrackingConfiguration IdentifyAs(string key)
+        public TrackingConfiguration IdentifyAs(string key, NamingScheme storeNamingScheme = NamingScheme.TypeNameAndKey)
         {
             if (TargetStore != null)
                 throw new InvalidOperationException("Can't set key after TargetStore has been set (which happens the first time Apply() or Persist() is called).");
 
             Key = key;
+            StoreNamingScheme = storeNamingScheme;
+            
             return this;
         }
 
@@ -377,8 +385,15 @@ namespace Jot
         private IStore InitStore()
         {
             object target = TargetReference.Target;
-            //use the object type plus the key to identify the object store
-            string storeName = Key == null ? target.GetType().Name : string.Format("{0}_{1}", target.GetType().Name, Key);
+
+            //use the object type plus the key to identify the object store based on NamingScheme
+            string storeName;            
+            switch (StoreNamingScheme)
+            {
+                case NamingScheme.KeyOnly: storeName = Key; break;
+                //default is reserved for NamingScheme.TypeNameAndKey
+                default: storeName = Key == null ? target.GetType().Name : string.Format("{0}_{1}", target.GetType().Name, Key); break;
+            }
             return StateTracker.StoreFactory.CreateStoreForObject(storeName);
         }
 

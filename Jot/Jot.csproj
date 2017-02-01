@@ -74,6 +74,7 @@
     <Compile Include="CustomInitializers\FormConfigurationInitializer.cs" />
     <Compile Include="IConfigurationInitializer.cs" />
     <Compile Include="CustomInitializers\WindowConfigurationInitializer.cs" />
+    <Compile Include="Schemes\NamingScheme.cs" />
     <Compile Include="Storage\IStoreFactory.cs" />
     <Compile Include="Storage\JsonFileStoreFactory.cs" />
     <Compile Include="Storage\Stores\JsonFileStore.cs" />
