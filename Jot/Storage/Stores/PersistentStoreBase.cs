@@ -3,7 +3,7 @@
 namespace Jot.Storage
 {
     /// <summary>
-    /// Base class for objects that serialize and persist data. Keeps all data in a dictionary, and loads/saves the dictionary when neccessary.
+    /// Base class for objects that serialize and persist data. Keeps all data in a dictionary, and loads/saves the dictionary when necessary.
     /// </summary>
     public abstract class PersistentStoreBase : IStore
     {
@@ -53,7 +53,7 @@ namespace Jot.Storage
             SaveValues(Values);
         }
         /// <summary>
-        /// Loads values from the backig storage into a dictionary.
+        /// Loads values from the backing storage into a dictionary.
         /// </summary>
         /// <returns>A dictionary with the retrieved values.</returns>
         protected abstract Dictionary<string, object> LoadValues();
