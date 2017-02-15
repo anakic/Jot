@@ -45,7 +45,7 @@ namespace Jot
         public NamingScheme StoreNamingScheme { get; set; } = NamingScheme.TypeNameAndKey;
 
         /// <summary>
-        /// A dictioanary containing the tracked properties.
+        /// A dictionary containing the tracked properties.
         /// </summary>
         public Dictionary<string, TrackedPropertyInfo> TrackedProperties { get; set; } = new Dictionary<string, TrackedPropertyInfo>();
 
@@ -107,7 +107,7 @@ namespace Jot
         }
 
         /// <summary>
-        /// Fired when the data for the target object is peristed.
+        /// Fired when the data for the target object is persisted.
         /// </summary>
         public event EventHandler StatePersisted;
         private void OnStatePersisted()
@@ -149,7 +149,7 @@ namespace Jot
                     }
                     catch (OperationCanceledException ex)
                     {
-                        Trace.WriteLine(string.Format("Persisting cancelled, property key = '{0}', message='{1}'.", propertyName, ex.Message));
+                        Trace.WriteLine(string.Format("Persisting canceled, property key = '{0}', message='{1}'.", propertyName, ex.Message));
                     }
                     catch (Exception ex)
                     {
