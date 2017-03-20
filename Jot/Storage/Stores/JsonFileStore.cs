@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,28 @@ namespace Jot.Storage.Stores
     public class JsonFileStore : PersistentStoreBase
     {
         #region custom serialization (for object type handling)
+        private class IPAddressConverter : JsonConverter
+        {
+            public override bool CanConvert(Type objectType)
+            {
+                return objectType == typeof(IPAddress);
+            }
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                var value = reader.Value;
+                if (value != null)
+                    return IPAddress.Parse((string)reader.Value);
+                else
+                    return null;
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                writer.WriteValue(value.ToString());
+            }
+        }
+
         private class StoreItemConverter : JsonConverter
         {
             public override bool CanConvert(Type objectType)
@@ -90,7 +113,7 @@ namespace Jot.Storage.Stores
             {
                 try
                 {
-                    storeItems = JsonConvert.DeserializeObject<List<StoreItem>>(File.ReadAllText(FilePath), new StoreItemConverter());
+                    storeItems = JsonConvert.DeserializeObject<List<StoreItem>>(File.ReadAllText(FilePath), new StoreItemConverter(), new IPAddressConverter());
                 }
                 catch { }
             }
@@ -108,7 +131,7 @@ namespace Jot.Storage.Stores
         protected override void SaveValues(Dictionary<string, object> values)
         {
             var list = values.Select(kvp => new StoreItem() { Name = kvp.Key, Value = kvp.Value, Type = kvp.Value?.GetType() });
-            string serialized = JsonConvert.SerializeObject(list, new JsonSerializerSettings() { Formatting = Formatting.Indented, TypeNameHandling=TypeNameHandling.None });
+            string serialized = JsonConvert.SerializeObject(list, new JsonSerializerSettings() { Formatting = Formatting.Indented, TypeNameHandling=TypeNameHandling.None, Converters = new JsonConverter[] { new IPAddressConverter() } });
 
             string directory = Path.GetDirectoryName(FilePath);
             if (!Directory.Exists(directory))

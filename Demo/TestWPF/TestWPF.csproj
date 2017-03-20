@@ -59,6 +59,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="IPConverter.cs" />
+    <Compile Include="IPValidationRule.cs" />
     <Compile Include="Services.cs" />
     <Compile Include="Settings\GeneralSettings.cs" />
     <Compile Include="Settings\DisplaySettings.cs" />
