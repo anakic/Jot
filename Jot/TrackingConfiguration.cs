@@ -13,22 +13,6 @@ namespace Jot
     /// </summary>
     public sealed class TrackingConfiguration
     {
-        private class TrackingOperationResult
-        {
-            public bool Cancel { get; private set; }
-            public object Value { get; private set; }
-
-            public TrackingOperationResult(object value) : this(false, value)
-            {
-            }
-
-            public TrackingOperationResult(bool cancel, object value)
-            {
-                Cancel = cancel;
-                Value = value;
-            }
-        }
-
         /// <summary>
         /// Indicates if previously stored data has been applied to the target object.
         /// </summary>
@@ -77,18 +61,19 @@ namespace Jot
         /// Allows the handler to cancel applying the data to the property, as well as to modify the data that gets applied.
         /// </summary>
         public event EventHandler<TrackingOperationEventArgs> ApplyingProperty;
-        private TrackingOperationResult OnApplyingState(string property, object value)
+        private bool OnApplyingState(string property, ref object value)
         {
             var handler = ApplyingProperty;
             if (handler != null)
             {
                 TrackingOperationEventArgs args = new TrackingOperationEventArgs(this, property, value);
                 handler(this, args);
-                return new TrackingOperationResult(args.Cancel, args.Value);
+                value = args.Value;
+                return !args.Cancel;
             }
             else
             {
-                return new TrackingOperationResult(value);
+                return true;
             }
         }
 
@@ -105,18 +90,19 @@ namespace Jot
         /// Fired when the a property of the object is being persisted. Allows the handler to cancel persisting the property, as well as to modify the data that gets persisted.
         /// </summary>
         public event EventHandler<TrackingOperationEventArgs> PersistingProperty;
-        private TrackingOperationResult OnPersistingState(string property, object value)
+        private bool OnPersistingState(string property, ref object value)
         {
             var handler = PersistingProperty;
             if (handler != null)
             {
                 TrackingOperationEventArgs args = new TrackingOperationEventArgs(this, property, value);
                 handler(this, args);
-                return new TrackingOperationResult(args.Cancel, args.Value);
+                value = args.Value;
+                return !args.Cancel;
             }
             else
             {
-                return new TrackingOperationResult(value);
+                return true;
             }
         }
 
@@ -157,15 +143,14 @@ namespace Jot
                     var value = TrackedProperties[propertyName].Getter(TargetReference.Target);
                     try
                     {
-                        var validationResult = OnPersistingState(propertyName, value);
-                        if (validationResult.Cancel)
+                        var shouldPersist = OnPersistingState(propertyName, ref value);
+                        if (shouldPersist)
                         {
-                            Trace.WriteLine(string.Format("Persisting cancelled, key='{0}', property='{1}'.", Key, propertyName));
+                            TargetStore.Set(value, propertyName);
                         }
                         else
                         {
-                            value = validationResult.Value;
-                            TargetStore.Set(value, propertyName);
+                            Trace.WriteLine(string.Format("Persisting cancelled, key='{0}', property='{1}'.", Key, propertyName));
                         }
                     }
                     catch (Exception ex)
@@ -198,14 +183,15 @@ namespace Jot
                     {
                         try
                         {
-                            object storedValue = TargetStore.Get(propertyName);
-                            var validationResult = OnApplyingState(propertyName, storedValue);
-                            if (validationResult.Cancel)
-                                Trace.WriteLine(string.Format("Persisting cancelled, key='{0}', property='{1}'.", Key, propertyName));
+                            object value = TargetStore.Get(propertyName);
+                            var shouldApply = OnApplyingState(propertyName, ref value);
+                            if (shouldApply)
+                            {
+                                descriptor.Setter(TargetReference.Target, value);
+                            }
                             else
                             {
-                                object valueToApply = validationResult.Value;
-                                descriptor.Setter(TargetReference.Target, valueToApply);
+                                Trace.WriteLine(string.Format("Persisting cancelled, key='{0}', property='{1}'.", Key, propertyName));
                             }
                         }
                         catch (Exception ex)
@@ -239,7 +225,7 @@ namespace Jot
 
             Key = key;
             StoreNamingScheme = storeNamingScheme;
-            
+
             return this;
         }
 
@@ -408,7 +394,7 @@ namespace Jot
             object target = TargetReference.Target;
 
             //use the object type plus the key to identify the object store based on NamingScheme
-            string storeName;            
+            string storeName;
             switch (StoreNamingScheme)
             {
                 case NamingScheme.KeyOnly: storeName = Key; break;
