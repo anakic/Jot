@@ -21,7 +21,7 @@ namespace Jot
         /// <summary>
         /// The StateTracker that owns this tracking configuration.
         /// </summary>
-        public StateTracker StateTracker { get; private set; }
+        public StateTracker StateTracker { get; }
 
         /// <summary>
         /// The store that is used to save and retrieve the target's data.

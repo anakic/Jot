@@ -31,17 +31,27 @@ namespace Jot.Tests
                 Directory.Delete(tempFolder, true);
         }
 
-        [TestMethod]
-        public void ApplyDoesNothingIfNoSavedData()
-        {
-            var testData = new Foo() { Double = -99.9f };
-            var stateTracker = CreateStateTracker();
-            stateTracker.Configure(testData).AddProperty(nameof(testData.Double));
-            stateTracker.Configure(testData).Apply();
-            Assert.AreEqual(testData.Double, -99.9f);
-        }
+		[TestMethod]
+		public void ApplyDoesNothingIfNoSavedData()
+		{
+			var testData = new Foo() { Double = -99.9f };
+			var stateTracker = CreateStateTracker();
+			stateTracker.Configure(testData).AddProperty(nameof(testData.Double));
+			stateTracker.Configure(testData).Apply();
+			Assert.AreEqual(testData.Double, -99.9f);
+		}
 
-        [TestMethod]
+		[TestMethod]
+		public void ApplySetsAttributeDefinedDefaultValuesIfNoSavedData()
+		{
+			var testData = new TestClassWithDefaultValues();
+			var stateTracker = CreateStateTracker();
+			stateTracker.Configure(testData).IdentifyAs("some new id").Apply();
+			Assert.AreEqual(123, testData.IntPropWithDefault123);
+			Assert.AreEqual("ABC", testData.StringPropWithDefaultABC);
+		}
+
+		[TestMethod]
         public void ApplyiesDefaultValueIfSpecifiedAndNoSavedData()
         {
             var testData = new Foo() { Double = 0 };

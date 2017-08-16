@@ -64,6 +64,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestDataClasses\Foo.cs" />
     <Compile Include="TestDataClasses\Bar.cs" />
+    <Compile Include="TestDataClasses\TestClassWithDefaultValues.cs" />
     <Compile Include="TestDataClasses\TestTrackingAware.cs" />
     <Compile Include="Tools\FooConfigurationInitializer.cs" />
     <Compile Include="Tools\TestPersistTrigger.cs" />

@@ -40,10 +40,8 @@ namespace Jot.DefaultInitializer
                 TrackableAttribute propTrackableAtt = pi.GetCustomAttributes(true).OfType<TrackableAttribute>().Where(ta => ta.TrackerName == configuration.StateTracker.Name).SingleOrDefault();
                 if (propTrackableAtt != null)
                 {
-                    //use [DefaultValue] if present
-                    DefaultValueAttribute defaultAtt = pi.CustomAttributes.OfType<DefaultValueAttribute>().SingleOrDefault();
-                    if (defaultAtt != null)
-                        configuration.AddProperty(pi.Name, defaultAtt.Value);
+                    if (propTrackableAtt.IsDefaultSpecified)
+                        configuration.AddProperty(pi.Name, propTrackableAtt.DefaultValue);
                     else
                         configuration.AddProperty(pi.Name);
                 }
