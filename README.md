@@ -5,12 +5,12 @@
 Almost every application needs to keep track of its own state, regardless of what it otherwise does. This typically includes:
  
 1. Sizes and locations of movable/resizable elements of the UI
-- Last entered data (e.g. username)
-- Settings and user preferences 
+1. Last entered data (e.g. username)
+1. Settings and user preferences 
 
 A common approach is to store this data in a .settings file, and read and update it as needed. This involves writing a lot of boilerplate code to copy that data back and forth. This code is generally tedious, error prone and no fun to write.
 
-Jot takes a different, declarative approach: Instead of writing code that copies data back and forth, you declare which properties of which objects you want to track, and when to persist and apply data. This is a more apropriate abstraction for this requirement, and results in more concise code, as demonstrated by the example.
+Jot uses a more compact declarative approach; instead of writing code that copies data back and forth, you declare which properties of which objects you want to track, and when to persist and apply data. This is a better abstraction for this requirement, resulting in more readable and concise code for this requirement.
 
 The library starts off with reasonable defaults for everything but it gives the developer full control over when, how and where each piece of data will be stored and applied.
 
@@ -101,7 +101,7 @@ That's it. It's concise, the intent is clear, and there's no repetition. Notice 
 
 ### Caveat
 
-The above code (both scenarios) would work for most cases, but for real world use we would need to handle a few more edge cases, and since tracking a `Window` or `Form` is so common, Jot already comes with pre-built settings for them, so we can actually track a window with a single line of code: 
+The above code (both scenarios) would work for most cases, but for real world use we would need to handle a few more edge cases (multiple displays, persisting minimized forms etc...), and since tracking a `Window` or `Form` is so common, Jot already comes with pre-built tracking configurations for them, so we can actually track a window with a single line of code: 
 
 
 **Step 2 (revisited)**
@@ -140,19 +140,19 @@ The `storeFactory` argument controls where data is stored. This factory will be 
 
 You can, of course, provide your own storage mechanism (by implementing `IStore` and `IStoreFactory`) and Jot will happily use it.
 
-By default, Jot stores data in .json files in the following folder: `%AppData%\[company name]\[application name]` (*company name* and *application name* are read from the entry assembly's attributes). The default folder is a per-user folder, but you can use a per-machine folder like so:
+By default, Jot stores data in .json files in the following folder: `%AppData%\[company name]\[application name]` (*company name* and *application name* are read from the entry assembly's attributes). The default folder is a per-user folder, but you can use a per-machine folder instead, like so:
 
 ``` C#
 var tracker = new StateTracker() { StoreFactory = new JsonFileStoreFactory(false) };//true: per-user, false: per-machine
 ```
 
-Or you can specify a folder path:
+Or you can specify the storage folder explicitly:
 
 ``` C#
 var tracker = new StateTracker() { StoreFactory = new JsonFileStoreFactory(@"c:\example\path\") };
 ```
 
-For desktop applications, the per-user default is usually fine.
+For desktop applications, the default per-user folder is usually fine.
 
 
 ### 2. When data is stored
@@ -168,18 +168,15 @@ Since Jot doesn't know anything about our objects, we need to introduce them and
 
 There are **4 ways** of initializing `TrackingConfiguration` objects, each being advantageous in certain scenarios. 
 
-Here they are...    
+### Way 1: Manipulate the TrackingConfiguration object directly
 
-
-### Way 1: Manipulate the TrackingConfiguration object
-
-To control how a single target object is tracked, we can manipulate its TrackingConfiguration directly. For example:
+To control how a single target object is tracked, we can manipulate its TrackingConfiguration object directly. For example:
 
 ``` C#
-	tracker.Configure(target)
+	tracker.Configure(targetObj)
 		.IdentifyAs("some id")
-		.AddProperties(nameof(target.Property1), nameof(target.Property2))
-		.RegisterPersistTrigger(nameof(target.PropertyChanged))
+		.AddProperties(nameof(targetObj.Property1), nameof(targetObj.Property2))
+		.RegisterPersistTrigger(nameof(targetObj.PropertyChanged))
 ```
 
 Once we've set up the configuration object, we can apply any previously stored data to its tracked properties by calling `Apply()` on the configuration object.
@@ -270,7 +267,7 @@ public class GeneralSettings : ITrackingAware
 	}
 ```
 
-The class is now self-descriptive about tracking, just like with the attributes approach. In this case, it manipulates its tracking configuration directly, which is a bit more flexible compared to using attributes.
+The class is now self-descriptive about tracking, just like with the attributes approach. In this case, it manipulates its tracking configuration directly, which is a bit more flexible compared to using attributes (here, the class can subscribe to its TrackingConfiguration events and cancel Apply/Persist operations or transform values before applying/persisting takes place).
 
 All that's needed now to start tracking an instance of this class is to call: 
 
@@ -280,7 +277,7 @@ tracker.Configure(settingsObj).Apply();
 
 # IOC integration
 
-Now, here's the really cool part.
+Now, here's the really cool part...
 
 When using an IOC container, many objects in the application will be created by the container. This gives us an opportunity to automatically track all created objects by hooking into the container.
 
@@ -294,7 +291,7 @@ var container = new SimpleInjector.Container();
 container.RegisterInitializer(d => { stateTracker.Configure(d.Instance).Apply(); }, cx => true);
 ```
 
-Since the container doesn't know how to set up tracking for specific types, we need to specify the configurations in one or more of the following ways:
+Since the container doesn't know how to set up tracking for specific object types, we need to specify the configurations in one or more of the following ways:
 - using configuration initializers
 - using `[Trackable]` and `[TrackingKey]` attributes
 - implementing `ITrackingAware` 
@@ -322,9 +319,9 @@ Demo projects are included in the repository. Playing around with them should be
 You can contribute to this project in the usual way:
 
 1. First of all, don't forget to star the project
-- Fork the project
-- Push your commits to your fork
-- Make a pull request
+1. Fork the project
+1. Push your commits to your fork
+1. Make a pull request
 
 
 # Links
