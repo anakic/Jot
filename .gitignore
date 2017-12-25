@@ -6,6 +6,8 @@ TestResults/
 packages/
 Ignored/
 
+storage.ide
+*.nupkg
 *.exe
 *.dll
 *.suo
