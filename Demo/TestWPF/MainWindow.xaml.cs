@@ -30,8 +30,9 @@ namespace TestWPF
 
             //track tabcontrol's selected index
             Services.Tracker.Configure(tabControl)
-                .IdentifyAs(tabControl.Name)
-                .AddProperties<TabControl>(tc => tc.SelectedIndex)
+                .IdentifyAs($"{this.Name}_{tabControl.Name}")
+                .AddProperties(nameof(tabControl.SelectedIndex))
+				.RegisterPersistTrigger(nameof(tabControl.SelectionChanged))
                 .Apply();
         }
     }
