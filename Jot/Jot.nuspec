@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Jot</id>
+    <version>$version$</version>
+    <title>Jot - the settings management library</title>
+    <authors>Antonio Nakic Alfirevic</authors>
+    <owners>Antonio Nakic Alfirevic</owners>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/anakic/Jot</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Jot is a tiny library useful in almost any .NET project. It's an alternative to using .settings files for persisting and restoring application data. The resulting code is short, non-repetitive and easy to write and maintain.</description>
+    <copyright>Copyright 2017</copyright>
+    <tags>settings persistence wpf winforms desktop web</tags>
+  </metadata>
+</package>
