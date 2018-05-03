@@ -89,7 +89,7 @@ public MainWindow()
     InitializeComponent();
     
 	Services.Tracker.Configure(this)//the object to track
-		.IdenitifyAs("main window")//a string by which to identify the target object
+		.IdentifyAs("main window")//a string by which to identify the target object
         .AddProperties<Window>(w => w.Height, w => w.Width, w => w.Top, w => w.Left, w => w.WindowState)//properties to track
         .RegisterPersistTrigger(nameof(SizeChanged))//when to persist data to the store
         .Apply();//apply any previously stored data
