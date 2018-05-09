@@ -138,6 +138,7 @@ namespace Jot
                 if (TargetStore == null)
                     TargetStore = InitStore();
 
+                TargetStore.Clear();//to prevent any previously existent properties from lingering
                 foreach (string propertyName in TrackedProperties.Keys)
                 {
                     var value = TrackedProperties[propertyName].Getter(TargetReference.Target);

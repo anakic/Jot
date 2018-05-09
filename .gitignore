@@ -5,6 +5,7 @@ Release/
 TestResults/
 packages/
 Ignored/
+.vs/
 
 storage.ide
 *.nupkg

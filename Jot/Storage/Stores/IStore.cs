@@ -31,5 +31,9 @@
         /// Commits the new data to the store. For a file-based store, this is where data should be written to the file.
         /// </summary>
         void CommitChanges();
+        /// <summary>
+        /// Clear all data from the store.
+        /// </summary>
+        void Clear();
     }
 }

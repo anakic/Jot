@@ -62,5 +62,12 @@ namespace Jot.Storage
         /// </summary>
         /// <param name="values">The values to store.</param>
         protected abstract void SaveValues(Dictionary<string, object> values);
+        /// <summary>
+        /// Clears the cache of old values. This is to prevent any orphaned properties from lingering.
+        /// </summary>
+        public void Clear()
+        {
+            _values = new Dictionary<string, object>();
+        }
     }
 }
