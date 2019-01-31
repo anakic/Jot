@@ -243,7 +243,7 @@ namespace Jot
         }
 
         /// <summary>
-        /// Adds a property (of the target object) to track.
+        /// Adds a list of properties (of the target object) to track.
         /// </summary>
         /// <typeparam name="T">The type of the target object</typeparam>
         /// <param name="properties">A list of expressions that point to the properties of the target object that you want to track.</param>
@@ -251,6 +251,18 @@ namespace Jot
         public TrackingConfiguration AddProperties<T>(params Expression<Func<T, object>>[] properties)
         {
             AddProperties(properties.Select(p => GetPropertyNameFromExpression(p)).ToArray());
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a list of properties (of the target object) to track.
+        /// </summary>
+        /// <typeparam name="T">The type of the target object</typeparam>
+        /// <param name="properties">A expression that point to the properties of the target object that you want to track.</param>
+        /// <returns>The tracking configuration object itself, for further method chaining.</returns>
+        public TrackingConfiguration AddProperties<T>(Expression<Func<T, object[]>> properties) // Addresses GitHub issue #23
+        {
+            AddProperties(GetPropertyNamesFromExpression(properties).ToArray());
             return this;
         }
 
@@ -388,6 +400,21 @@ namespace Jot
             else
                 membershipExpression = exp.Body as MemberExpression;
             return membershipExpression.Member.Name;
+        }
+
+        private static IEnumerable<string> GetPropertyNamesFromExpression<T>(Expression<Func<T, object[]>> exp)
+        {
+            NewArrayExpression arrayExpression = exp.Body as NewArrayExpression;
+
+            foreach (Expression subExp in arrayExpression.Expressions) {
+                MemberExpression membershipExpression = null;
+                if (subExp is UnaryExpression)
+                    membershipExpression = (subExp as UnaryExpression).Operand as MemberExpression;
+                else
+                    membershipExpression = subExp as MemberExpression;
+                
+                yield return membershipExpression.Member.Name;
+            }
         }
 
         private IStore InitStore()
