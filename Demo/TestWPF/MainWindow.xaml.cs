@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Jot.Configuration;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using TestWPF.Settings;
@@ -10,30 +11,21 @@ namespace TestWPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        AppSettings _settings = new AppSettings();
 
         public MainWindow()
         {
             InitializeComponent();
 
-            this.DataContext = _settings;
-            this.SourceInitialized += MainWindow_SourceInitialized;
-
-            //set up tracking and apply state to the settings object
-            Services.Tracker.Configure(_settings).Apply();
-        }
-
-        private void MainWindow_SourceInitialized(object sender, EventArgs e)
-        {
+            //set up tracking and apply state to the application settings object
+            Services.Tracker.Track(App.Settings);
+            
+            // in addition to tracking standard window properties, also track selected tab for MainWindow instances
+            Services.Tracker.Configure<MainWindow>().Property(w => w.tabControl.SelectedIndex, "SelectedTab");
+        
             //set up tracking and apply state for the main window
-            Services.Tracker.Configure(this).Apply();
+            Services.Tracker.Track(this);
 
-            //track tabcontrol's selected index
-            Services.Tracker.Configure(tabControl)
-                .IdentifyAs($"{this.Name}_{tabControl.Name}")
-                .AddProperties(nameof(tabControl.SelectedIndex))
-				.RegisterPersistTrigger(nameof(tabControl.SelectionChanged))
-                .Apply();
+            this.DataContext = App.Settings;
         }
     }
 }

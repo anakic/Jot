@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Jot
+namespace Jot.Configuration
 {
     /// <summary>
     /// An object that decribes the tracking information for a target object's property.
@@ -10,30 +10,31 @@ namespace Jot
         /// <summary>
         /// Function that gets the value of the property.
         /// </summary>
-        public Func<object, object> Getter { get; private set; }
+        public Func<object, object> Getter { get; }
         /// <summary>
         /// Action that sets the value of the property.
         /// </summary>
-        public Action<object, object> Setter { get; private set; }
+        public Action<object, object> Setter { get; }
         /// <summary>
         /// Indicates if a default value is provided for the property.
         /// </summary>
-        public bool IsDefaultSpecified { get; private set; }
+        public bool IsDefaultSpecified { get; }
         /// <summary>
         /// The value that will be applied to a tracked property if no existing persisted data is found.
         /// </summary>
-        public object DefaultValue { get; private set; }
+        public object DefaultValue { get; }
 
         internal TrackedPropertyInfo(Func<object, object> getter, Action<object, object> setter)
-            : this(getter, setter, false, null)
+            : this(getter, setter, null)
         {
+            IsDefaultSpecified = false;
         }
 
-        internal TrackedPropertyInfo(Func<object, object> getter, Action<object, object> setter, bool isDefaultSpecified, object defaultValue)
+        internal TrackedPropertyInfo(Func<object, object> getter, Action<object, object> setter, object defaultValue)
         {
             Getter = getter;
             Setter = setter;
-            IsDefaultSpecified = isDefaultSpecified;
+            IsDefaultSpecified = true;
             DefaultValue = defaultValue;
         }
     }

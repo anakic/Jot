@@ -18,23 +18,12 @@
                         <RowDefinition/>
                         <RowDefinition/>
                         <RowDefinition/>
-                        <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Label Content="Property1 (int)" Grid.Row="0" Grid.Column="0"/>
                     <TextBox Text="{Binding Property1}" Grid.Row="0" Grid.Column="1"/>
                     <Label Content="Property2 (string)" Grid.Row="1" Grid.Column="0"/>
                     <TextBox Text="{Binding Property2}" Grid.Row="1" Grid.Column="1"/>
-                    <Label Content="Property3 (ipaddress)" Grid.Row="2" Grid.Column="0"/>
-                    <TextBox Grid.Row="2" Grid.Column="1">
-                        <TextBox.Text>
-                            <Binding Path="Property3" Converter="{loc:IPConverter}">
-                                <Binding.ValidationRules>
-                                    <loc:IPValidationRule></loc:IPValidationRule>
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </TextBox.Text>
-                    </TextBox>
-                    <CheckBox IsChecked="{Binding Property4}" Grid.Row="3" Grid.ColumnSpan="2" Content="Property4 (bool)" Margin="5"/>
+                    <CheckBox IsChecked="{Binding Property4}" Grid.Row="2" Grid.ColumnSpan="2" Content="Property4 (bool)" Margin="5"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Display settings" DataContext="{Binding DisplaySettings}">

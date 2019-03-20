@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Jot.Tests.TestDataClasses
+namespace Jot.Tests.TestData
 {
     class Bar
     {

@@ -21,3 +21,6 @@ storage.ide
 *.obproj.vspscc
 *.obproj.map
 *.cache
+
+publish.bat
+*.pfx

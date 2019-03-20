@@ -4,32 +4,27 @@
 ## Introduction 
 Almost every application needs to keep track of its own state, regardless of what it otherwise does. This typically includes:
  
-1. Sizes and locations of movable/resizable elements of the UI
-1. Last entered data (e.g. username)
+1. Sizes and locations of movable/resizable elements of the UI (forms, tool windows, draggable toolbars...)
+1. Last entered data (e.g. username, selected tab indexes, recently opened files...)
 1. Settings and user preferences 
 
-A common approach is to store this data in a .settings file, and read and update it as needed. This involves writing a lot of boilerplate code to copy that data back and forth. This code is generally tedious, error prone and no fun to write.
+A common approach is to store this data in a .settings file and read and update it as needed. This involves writing a lot of boilerplate code to copy that data back and forth. This code is generally tedious, error-prone and no fun to write.
 
-Jot uses a more compact declarative approach; instead of writing code that copies data back and forth, you declare which properties of which objects you want to track, and when to persist and apply data. This is a better abstraction for this requirement, resulting in more readable and concise code for this requirement.
-
-The library starts off with reasonable defaults for everything but it gives the developer full control over when, how and where each piece of data will be stored and applied.
-
+With Jot, you only need to declare which properties of which objects you want to track, and when to persist and apply data. This is a better abstraction for this requirement, resulting in more readable and concise code.
 
 ## Installation
 
-Jot is available on NuGet and can be installed in the usual way: 
+Jot is available on NuGet and can be installed from the package manager console: 
 
 `install-package Jot`
 
 
 ## Example: Persisting the size and location of a Window
-
 To illustrate the basic idea, let's compare two ways of dealing with this requirement: .settings file (Scenario A) versus Jot (Scenario B).
 
+### Scenario A (.settings file)
 
-### Scenario A: Using a .settings file
-
-**Step 1:** define settings
+**Step 1:** Define settings
 
 ![](http://www.codeproject.com/KB/cs/475498/settings.jpg)
 
@@ -65,253 +60,291 @@ protected override void OnClosed(EventArgs e)
 }     
 ```
 
-This is quite a bit of work, even for a single window. If we had 10 resizable/movable elements of the UI, the settings file would quickly become a jungle of similarly named properties. This would make writing this code quite tedious and error prone.
+This is a lot of work, even for a single window. If there were 10 resizable/movable elements of the UI, the settings file would become a jungle of similarly named properties, making this code quite tedious and error prone to write.
 
-Also notice how many times we mention each property - **a total of 5 times** (e.g. do a Ctrl+F *Left*, and don't forget to count the one in the settings file image).
+Also notice that for each property of the window, we need to mention it in five places (in the settings file, twice in the constructor and twice in OnClosed).
 
 
-### Scenario B: Using Jot
+### Scenario B (Jot)
 
-**Step 1:** Create a StateTracker instance and expose it to the rest of the application (for simplicity's sake, let's expose it as a static property)
+**Step 1:** Create and configure the tracker
 
 ``` C#
+// Expose services as static class to keep the example simple 
 static class Services
 {
-    public static StateTracker Tracker = new StateTracker();
+	// expose the tracker instance
+    public static Tracker Tracker = new Tracker();
+
+	static Services()
+	{
+		// tell Jot how to track Window objects
+		Tracker.Configure<Window>()
+			.Id(w => w.Name)
+			.Properties(w => new { w.Height, w.Width, w.Left, w.Top, w.WindowState })
+			.PersistOn(nameof(Window.WindowClosed))
+	}
 }
 ```
 
-**Step 2:** Set up tracking 
+**Step 2:** Track the window instance
 
 ``` C#
 public MainWindow()
 {
     InitializeComponent();
     
-	Services.Tracker.Configure(this)//the object to track
-		.IdentifyAs("main window")//a string by which to identify the target object
-        .AddProperties<Window>(w => w.Height, w => w.Width, w => w.Top, w => w.Left, w => w.WindowState)//properties to track
-        .RegisterPersistTrigger(nameof(SizeChanged))//when to persist data to the store
-        .Apply();//apply any previously stored data
+	// start tracking this Window instance
+	// this will apply any previously stored data and start listening  
+	// for "WindowClosed" event to persist new data. 
+	Services.Track(this);
 }
 
 ```
 
-That's it. It's concise, the intent is clear, and there's no repetition. Notice that we've mentioned each property only **once**, and it would be trivial to track additional properties. 
+That's it. We've set up tracking for all window objects in one place, so that all we need to to is call `tracker.Track(window)` on each window instance to preserve it's size and location. It's concise, the intent is clear, and there's no repetition. Notice also that we've mentioned each property only once, and it would be trivial to track additional properties. 
 
-### Caveat
+### Real world form/window tracking
 
-The above code (both scenarios) would work for most cases, but for real world use we would need to handle a few more edge cases (multiple displays, persisting minimized forms etc...), and since tracking a `Window` or `Form` is so common, Jot already comes with pre-built tracking configurations for them, so we can actually track a window with a single line of code: 
+The above code (both scenarios) works but it doesn't account for a few things. The first one is multiple displays. Screens can be unplugged, and we never want to position a window onto a screen that's no longer there. We can get around this problem very easily if we make the screen resolution part of the identifier. Jot will then track the same window separately for each screen configuration.
 
+#### WPF Window
+Here's how to properly track a WPF window:
 
-**Step 2 (revisited)**
+``` csharp
+// 1. tell the tracker how to track Window objects (this goes in a startup class)
+tracker.Configure<Window>()
+    .Id(w => w.Name, SystemInformation.VirtualScreen.Size) // <-- include the screen resolution in the id
+    .Properties(w => new { w.Top, w.Width, w.Height, w.Left, w.WindowState })
+    .PersistOn(nameof(Window.Closing))
+    .StopTrackingOn(nameof(Window.Closing));
 
-``` C#
-public MainWindow()
+// 2. in the Window constructor
+public Window1()
 {
-    InitializeComponent();
-
-	//Why SourceInitialized?
-	//Subtle WPF issue: WPF will always maximize a window to the primary screen 
-	//if WindowState is set too early (e.g. in the constructor), even
-	//if the Left property says it should be on the 2nd screen. Setting
-	//these values in SourceInitialized resolves the issue.
-    this.SourceInitialized += (s,e) => Services.Tracker.Configure(this).Apply(); 
+	// fetch the tracker instance e.g. via IOC or static property
+	var tracker = Services.Tracker;
+	tracker.Track(this);
 }
+``` 
 
-```
+The `Id` method has a `params object []` parameter that can be used to define a namespace for the id. These parameters simply get *ToString-ed* and concatenated to the Id. By using the screen resolution as the namespace, we ensure that we maintain separate configurations for different resolutions.
 
-The pre-built settings for `Window` objects are defined in  [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs). During the `Configure` method, the  `WindowConfigurationInitializer` object will set up tracking for `Hight`, `Width`, `Top`, `Left` and `WindowState` properties of the window, along with some validation for edge cases. We can replace the default way Jot tracks `Window` objects by supplying our own `ConfigurationInitializer` for the `Window` type, more on that later.   
+#### Windows forms
 
+Winforms have a few additional caveats:
+- Forms will return bogus size/location data for maximized/minimized forms, so we have to cancel persisting those
+- Tracking needs to be applied during `OnLoad` since `Top` and `Left` properties set in the constructor are ignored
 
-## Where & when data gets stored
-
-The `StateTracker` class has an empty constructor which uses reasonable defaults, but the main constructor allows you to specify exactly **where** the data will be stored and **when**:
-  
-``` C#
-StateTracker(IStoreFactory storeFactory, ITriggerPersist persistTrigger)
-```
-
-The two arguments are explained below.
-
-
-### 1. Where data is stored
-The `storeFactory` argument controls where data is stored. This factory will be used to create a data store for each tracked object. 
-
-You can, of course, provide your own storage mechanism (by implementing `IStore` and `IStoreFactory`) and Jot will happily use it.
-
-By default, Jot stores data in .json files in the following folder: `%AppData%\[company name]\[application name]` (*company name* and *application name* are read from the entry assembly's attributes). The default folder is a per-user folder, but you can use a per-machine folder instead, like so:
+Here how to properly track (Windows) Forms:
 
 ``` C#
-var tracker = new StateTracker() { StoreFactory = new JsonFileStoreFactory(false) };//true: per-user, false: per-machine
-```
+// tell the tracker how to track Form objects (this goes in a startup class)
+tracker.Configure<Form>()
+	.Id(f => f.Name, SystemInformation.VirtualScreen.Size) // <-- include the screen resolution in the id
+	.Properties(f => new { f.Top, f.Width, f.Height, f.Left, f.WindowState })
+	.PersistOn(nameof(Form.Move), nameof(Form.Resize), nameof(Form.FormClosing))
+	.WhenPersistingProperty((f, p) => p.Cancel = (f.WindowState != FormWindowState.Normal && (p.Property == nameof(Form.Height) || p.Property == nameof(Form.Width) || p.Property == nameof(Form.Top) || p.Property == nameof(Form.Left)))) // do not track form size and location when minimized/maximized
+	.StopTrackingOn(nameof(Form.FormClosing)); // <-- a form should not be persisted after it is closed since properties will be empty
 
-Or you can specify the storage folder explicitly:
-
-``` C#
-var tracker = new StateTracker() { StoreFactory = new JsonFileStoreFactory(@"c:\example\path\") };
-```
-
-For desktop applications, the default per-user folder is usually fine.
-
-
-### 2. When data is stored
-The StateTracker uses an object that implements `ITriggerPersist` to get notified when it should do a global save of all data. The `ITriggerPersist` interface has just one member: the `PersistRequired` event.
-
-The only built-in implementation of this interface is the `DesktopPersistTrigger` class which fires the `PersistRequired` event when the (desktop) application is about to shut down. 
-
-> Note: Objects that don't survive until application shutdown should be persisted earlier. This can be done by specifying the persist trigger (`RegisterPersistTrigger`) or by explicitly calling `Persist()` on their `TrackingConfiguration` object when appropriate.  
-
-
-## Which properties of which object to track?
-Since Jot doesn't know anything about our objects, we need to introduce them and tell Jot which properties of which object we want to track. For each object we track, a `TrackingConfiguration` object will be created. This configuration object will control how the target object is tracked.
-
-There are **4 ways** of initializing `TrackingConfiguration` objects, each being advantageous in certain scenarios. 
-
-### Way 1: Manipulate the TrackingConfiguration object directly
-
-To control how a single target object is tracked, we can manipulate its TrackingConfiguration object directly. For example:
-
-``` C#
-	tracker.Configure(targetObj)
-		.IdentifyAs("some id")
-		.AddProperties(nameof(targetObj.Property1), nameof(targetObj.Property2))
-		.RegisterPersistTrigger(nameof(targetObj.PropertyChanged))
-```
-
-Once we've set up the configuration object, we can apply any previously stored data to its tracked properties by calling `Apply()` on the configuration object.
-
-
-### Way 2: Configuration initializers
-
-With configuration initializers, we can configure tracking for **all instances of a given (base) type**, even if we don't own the code of that type.
-
-Say we want to track all `TabControl` objects in our application in the same way: 
-
-- Track only the `SelectedIndex` property 
-- Persist when `SelectedIndexChanged` event fires 
-
-Here's how to create a default configuration for tracking all `TabControl` objects:
-
-``` C#
-public class TabControlCfgInitializer : IConfigurationInitializer
+// in the form code
+protected override void OnLoad(EventArgs e)
 {
-    public Type ForType
+	// fetch the tracker instance e.g. via IOC or static property
+	var tracker = Services.Tracker;
+	tracker.Track(this);
+}
+```
+
+## Which properties to track
+
+There are two methods (and several overloads) for telling Jot which properties of a given type to track. 
+
+The `Properties` method accepts an expression that projects the target properties as an anonymous object:
+```csharp
+tracker.Configure<Person>()
+	.Properties(p => new { p.Name, p.LastName, MothersMaidenName = p.Mother.LastName })  // <-- can navigate object graph
+```
+The `Property` method is used to add propreties one by one. It allows specifying a name and a default value for a property. Since the property name can be passed as a string, this overload is useful for situations where the properties to track are determined at runtime. 
+```csharp
+tracker.Configure<Person>()
+	.Property(p => p.Name)
+	.Property(p => p.LastName)
+	.Property(p => p.Age, -1) // if there's no value in the store, -1 will be set
+	.Property(p => p.Mother.LastName, "MothersMaidenName") // <-- a name must be provided so it does not colide with p.LastName
+```
+
+The expressions you provide are used to specify which properties to track. The properties usually belong to the target object itself but they can also navigate through other objects (e.g. `p.Mother.LastName`). Based on these expressions, Jot will dynamically generate *getter* and *setter* methods for reading and writing the data. Both methods (`Properties` and `Property`) are cumulative: they add properties to track, rather than overwrite previous calls.
+
+
+## When data is persisted
+
+Jot needs to know when a target's data has changed so it can save it to the store. You can tell Jot to automatically persist a target whenever the target fires an event:
+```csharp
+tracker.Configure<Foo>()
+	.Properties(...)
+	.PersistOn(nameof(Foo.SomeEvent))  <-- the event that should trigger persisting
+```
+You can optionally specify another object as the source of the event:
+```csharp
+PersistOn("SomeEvent", otherObject)
+```
+You can also tell Jot explicitly to persist a target using the `Persist` method:
+```csharp
+tracker.Persist(targetObj);
+```
+To tell Jot to persist all tracked objects, use the `PersistAll` method:
+```csharp
+tracker.PersistAll();
+```
+Usually, this would be during an application shutdown or at the end of a web request. Jot maintains a list of weak references to target objects. Targets that are already garbage collected are ignored by Jot. 
+
+Some objects survive until the end of the application without being in a usable state. For example, a disposed form can still be referenced (and thus not garbage collected). We do not want to continue tracking that form after it is disposed because it will have bogus property values which we do not want to save to the store. For such cases, we can tell Jot to stop tracking a particular object by calling `StopTracking`:
+```csharp
+tracker.StopTracking(targetObj);
+```
+We can also tell Jot to automatically stop tracking an object when it raises a certain event:
+```csharp
+tracker.Configure<Form>()
+	.Properties(...)
+	.PersistOn(...)
+	.StopTrackingOn(nameof(Form.Closed))  <-- the event that should cause the tracker to stop tracking the target
+```
+
+## Where data gets stored
+
+The `Tracker` class constructor has an optional parameter that allows you to specify where the data will be stored. 
+
+``` C#
+Tracker(IStore store)
+```
+Jot comes with a built-in implementation of `IStore` called `JsonFileStore`. If the `IStore` argument is not provided, the data will be stored in json files in the following folder: `%AppData%\[company name]\[application name]`. The *company name* and *application name* are read from the entry assembly's attributes). For each target object, there will be a separate file. Data is stored in separate files in order to make reading and writing data fast.
+
+To keep using the JSON file store, but store the data in a per-machine folder (e.g. `CommonApplicationData`), configure the tracker like so:
+
+``` C#
+var tracker = new Tracker(new JsonFileStore(Environment.SpecialFolder.CommonApplicationData));
+```
+
+Or specify the storage folder explicitly:
+
+``` C#
+var tracker = new Tracker(new JsonFileStore(@"c:\example\path\"));
+```
+
+Here's what the stored data looks like:
+
+![](http://i.imgur.com/xUVaVMh.png)
+
+### Custom storage
+
+The `IStore` interface is very simple. For a given Id, it needs to be able to store and retrieve a dictionary of values.
+
+```C#
+public interface IStore
+{
+    void SetData(string id, IDictionary<string, object> values);
+    IDictionary<string, object> GetData(string id);
+}
+``` 
+
+You can use this interface to make Jot store data anywhere you like e.g. in the cloud (to share settings for a user between machines) or a database. 
+
+## Value conversions and cancellation
+
+Jot lets you hook into the Apply and Persist operations. You can use this to perform value conversion and canceling the persist or apply operations for a property. As we've seen in the WinForms example, we can cancel applying size/location properties for Forms that are maximized or minimized:
+
+```csharp
+tracker.Configure<Form>()
+	.WhenPersistingProperty((f, p) => p.Cancel = (f.WindowState != FormWindowState.Normal && (p.Property == nameof(Form.Height) || p.Property == nameof(Form.Width) || p.Property == nameof(Form.Top) || p.Property == nameof(Form.Left))))
+```
+
+There are four hooks you can supply: `WhenPersistingProperty`, `WhenApplyingProperty`, `WhenAppliedState` and `WhenPersisted`.
+
+## Tracking and inheritance
+
+Tracking is configured per-type, meaning a separate `TrackingConfiguration<T>` object will need to be defined for each type of object we track. This configuration object tells Jot how to track objects of that type, but it also applies to objects of derived types. 
+
+When configuring tracking for a derived type, Jot will examine the inheritance hierarchy of that type and look for the closest ancestor type for which a tracking configuration already exists. If it finds one, it will first create a copy of the base type's tracking configuration which you can then further customize. 
+
+For example, let's suppose you define a form type called `MyForm` which derives from `Form`. In addition to tracking the size and location, you also want to track the selected tab of a TabControl that's part of `MyForm`. Here's what that code for that would look like: 
+
+``` csharp
+// configure tracking for Form
+tracker.Configure<Form>()
+	.Id(f => f.Name, SystemInformation.VirtualScreen.Size)
+	.Properties(f => new { f.Height, f.Width, f.Left, f.Top, f.WindowState})
+	.PersistOn(nameof(Form.Closing))
+	.StopTrackingOn(nameof(Form.Closed))
+	.WhenPersistingProperty((f, p) => p.Cancel = (f.WindowState != FormWindowState.Normal && p.Property != nameof(Form.WindowState)))
+
+
+// add the selected tab index for MyForm (everything else is already copied from the configuration for Form)
+tracker.Configure<MyForm>().Properties(f => f.tabControl1.SelectedIndex);
+```
+We do not have to repeat the tracking configuration for size and location. Since `MyForm` derives from `Form`, the configuration for `MyForm` will be copied from the configuration for `Form` and we only need to add the additional `f.tabControl1.SelectedTabIndex` property.
+
+Furthermore, if we configure tracking for `Form` but not for `MyForm`, Jot will track `MyForm` instances using the tracking configuration for `Form`.
+
+## The ITrackingAware interface
+
+Sometimes we cannot know at compile time which properties to track. In those situations, we need to configure tracking on a per-instance basis at runtime. To do this, our tracked objects can implement the `ITrackingAware` interface. 
+
+```csharp
+public interface ITrackingAware<T>
+{
+    void ConfigureTracking(TrackingConfiguration<T> configuration);
+}
+```
+In the `ConfigureTracking` method, the object can dynamically specify which properties to track. The `configuration` parameter is specific to that instance (and not the type) so each instance can independently configure its own tracking configuration.
+
+For example, let's assume we have a form that has a datagrid, and we want to track the widths of grid columns. We could track each grid column object as a separate object, but we can also track those columns as part of the form. Here's what that would look like: 
+
+```csharp
+public class MyFormWithDataGrid : ITrackingAware
+{
+	protected override void OnLoad(EventArgs e)
     {
-        get
-        {
-            return typeof(TabControl);
-        }
-    }
-
-    public void InitializeConfiguration(TrackingConfiguration configuration)
-    {
-        configuration
-            .AddProperties(nameof(TabControl.SelectedIndex))
-            .RegisterPersistTrigger(nameof(TabControl.SelectedIndexChanged));
-    }
-}
-```
-
-We can register it like so:
-
-``` C#
-_tracker.RegisterConfigurationInitializer(new TabControlCfgInitializer());
-```
-
-With our initializer registered, the `StateTracker` can use it to set up tracking for `TabControl` objects, without us having to repeat the configuration for every TabControl instance. To track a TabControl object now, all we need to do is:
-
-``` C#
-_tracker.Configure(tabControl1).Apply();
-```
-
-Jot comes with several configuration initializers built-in:
-- [WindowConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/WindowConfigurationInitializer.cs) (for `Window`)
-- [FormConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/CustomInitializers/FormConfigurationInitializer.cs) (for `Form`)
-- [DefaultConfigurationInitializer](https://github.com/anakic/Jot/blob/master/Jot/DefaultInitializer/DefaultConfigurationInitializer.cs) (enables the use of `[Trackable]` attributes and `ITrackingAware` for all objects)
-
-You can access and manipulate the registered configuration initializers via the `tracker.ConfigurationInitializers` property. 
-
-
-### Way 3: Using tracking attributes
-
-``` C#
-public class GeneralSettings
-{
-	[Trackable]
-    public int Property1 { get; set; }
-	[Trackable]
-	public string Property2 { get; set; }
-	[Trackable]
-	public SomeComplexType Property3 { get; set; }
-}
-```
-With this approach, the class is self-descriptive about tracking. Now all that's needed to start tracking an instance of this class is: 
-
-``` C#
-tracker.Configure(settingsObj).Apply();
-```
-
-### Way 4: Using the ITrackingAware interface
-``` C#
-public class GeneralSettings : ITrackingAware
-	{
-		public int Property1 { get; set; }
-		public string Property2 { get; set; }
-		public SomeComplexType Property3 { get; set; }
-
-		public void InitConfiguration(TrackingConfiguration configuration)
-		{
-			configuration.AddProperties<GeneralSettings>(s => s.Property1, s => s.Property2, s => s.Property3);
-		}
+		Services.Tracker.Track(this);
 	}
-```
 
-The class is now self-descriptive about tracking, just like with the attributes approach. In this case, it manipulates its tracking configuration directly, which is a bit more flexible compared to using attributes (here, the class can subscribe to its TrackingConfiguration events and cancel Apply/Persist operations or transform values before applying/persisting takes place).
-
-All that's needed now to start tracking an instance of this class is to call: 
-
-``` C#
-tracker.Configure(settingsObj).Apply();
+	public void InitConfiguration(TrackingConfiguration configuration)
+	{
+		// include data grid column widths when tracking this form
+        for (int i = 0; i < dataGridView1.Columns.Count; i++)
+        {
+            var idx = i; // capture i into a variable (cannot use i directly since it changes in each iteration)
+            configuration.Property("grid_c_" + dataGridView1.Columns[idx].Name, f => f.dataGridView1.Columns[idx].Width);
+        }
+	}
+} 
 ```
 
 # IOC integration
 
-Now, here's the really cool part...
+Here's the really cool part... Once we've explained to Jot how to track different types of objects, all that's needed in order for Jot to track instances of those types is to call:
+
+``` C#
+tracker.Track(obj);
+```
 
 When using an IOC container, many objects in the application will be created by the container. This gives us an opportunity to automatically track all created objects by hooking into the container.
 
 For example, with [SimpleInjector](https://simpleinjector.org/index.html) we can do this quite easily, with a single line of code:
 
 ``` C#
-var stateTracker = new Jot.StateTracker();
+var tracker = new Jot.Tracker();
 var container = new SimpleInjector.Container();
 
 //configure tracking and apply previously stored data to all created objects
-container.RegisterInitializer(d => { stateTracker.Configure(d.Instance).Apply(); }, cx => true);
+container.RegisterInitializer(d => { tracker.Track(d.Instance); }, cx => true);
 ```
 
-Since the container doesn't know how to set up tracking for specific object types, we need to specify the configurations in one or more of the following ways:
-- using configuration initializers
-- using `[Trackable]` and `[TrackingKey]` attributes
-- implementing `ITrackingAware` 
-
-To summarize what this means: with the above few lines of code in place, **we can now track any property of any object just by putting a [Trackable] attribute on it**! Pretty neat, huh?
-
-
-# Example of stored data
-
-Each tracked object will have its own file where its tracked property values will be saved. Here's an example:
-
-![](http://i.imgur.com/xUVaVMh.png)
-
-The file name includes the type of the tracked object and the identifier: `[targetObjectType]_[identifier].json`.  
-We can see, we're tracking three objects: AppSettings (id: not specified), MainWindow (id: myWindow) and a single TabControl (id: tabControl). 
-
+With this in place, we can easily make any property of any object persistent, just by modifying the tracking configuration for its type. Neat!
 
 # Demos
 
-Demo projects are included in the repository. Playing around with them should be enough to get you started. 
+Demo projects for WPF and WinForms are included in the repository. 
 
 
 # Contributing
@@ -323,12 +356,7 @@ You can contribute to this project in the usual way:
 1. Push your commits to your fork
 1. Make a pull request
 
-
-# Links
-Jot can be found on:
-- Nuget: https://www.nuget.org/packages/Jot
-- Codeproject: http://www.codeproject.com/Articles/475498/Easier-NET-settings (old but still mostly relevant) 
-
-
-# TODO for this readme
-- Web application scenarios
+# TODO
+- Async support
+- IOC demos
+- aspnet core (demo + readme section)

@@ -5,15 +5,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 
-namespace Jot.Storage.Stores
+namespace Jot.Storage
 {
     /// <summary>
     /// An implementation of IStore that saves data to a json file.
     /// </summary>
-    public class JsonFileStore : PersistentStoreBase
+    public class JsonFileStore : IStore
     {
         #region custom serialization (for object type handling)
         private class IPAddressConverter : JsonConverter
@@ -89,31 +88,65 @@ namespace Jot.Storage.Stores
         #endregion
 
         /// <summary>
-        /// The file that will store the target object's data.
+        /// The folder in which the store files will be located.
         /// </summary>
-        public string FilePath { get; private set; }
+        public string FolderPath { get; set; }
 
         /// <summary>
-        /// Creates a new instance of a JsonFileStore.
+        /// Creates a JsonFileStore that will store files in a per-user folder (%appdata%\[companyname]\[productname]). 
         /// </summary>
-        /// <param name="filePath"></param>
-        public JsonFileStore(string filePath)
+        /// <remarks>
+        /// CompanyName and ProductName are read from the entry assembly's attributes.
+        /// </remarks>
+        public JsonFileStore()
+            : this(true)
         {
-            FilePath = filePath;
         }
 
         /// <summary>
-        /// Loads values from the json file into the dictionary cache.
+        /// Creates a JsonFileStore that will store files in a per-user or per-machine folder. (%appdata% or %allusersprofile%  + \[companyname]\[productname]). 
+        /// </summary>
+        /// <param name="perUser">Specified if a per-user or per-machine folder will be used for storing the data.</param>
+        /// <remarks>
+        /// CompanyName and ProductName are read from the entry assembly's attributes.
+        /// </remarks>
+        public JsonFileStore(bool perUser)
+            : this(ConstructPath(perUser ? Environment.SpecialFolder.ApplicationData : Environment.SpecialFolder.CommonApplicationData))
+        {
+        }
+
+        /// <summary>
+        /// Creates a JsonFileStore that will store files in the specified folder.
+        /// </summary>
+        /// <param name="folder">The folder inside which the json files for tracked objects will be stored.</param>
+        public JsonFileStore(Environment.SpecialFolder folder)
+            : this(ConstructPath(folder))
+        {
+        }
+
+        /// <summary>
+        /// Creates a JsonFileStore that will store files in the specified folder.
+        /// </summary>
+        /// <param name="storeFolderPath">The folder inside which the json files for tracked objects will be stored.</param>
+        public JsonFileStore(string storeFolderPath)
+        {
+            FolderPath = storeFolderPath;
+        }
+
+        /// <summary>
+        /// Loads values from the json file into a dictionary.
         /// </summary>
         /// <returns></returns>
-        protected override Dictionary<string, object> LoadValues()
+        public IDictionary<string, object> GetData(string id)
         {
+            string filePath = GetfilePath(id);
             List<StoreItem> storeItems = null;
-            if (File.Exists(FilePath))
+            if (File.Exists(filePath))
             {
                 try
                 {
-                    storeItems = JsonConvert.DeserializeObject<List<StoreItem>>(File.ReadAllText(FilePath), new StoreItemConverter(), new IPAddressConverter());
+                    var fileContents = File.ReadAllText(filePath);
+                    storeItems = JsonConvert.DeserializeObject<List<StoreItem>>(fileContents, new StoreItemConverter(), new IPAddressConverter());
                 }
                 catch { }
             }
@@ -125,19 +158,44 @@ namespace Jot.Storage.Stores
         }
 
         /// <summary>
-        /// Stores the values from the dictioanry cache into the json file.
+        /// Stores the values as a json file.
         /// </summary>
         /// <param name="values"></param>
-        protected override void SaveValues(Dictionary<string, object> values)
+        public void SetData(string id, IDictionary<string, object> values)
         {
+            string filePath = GetfilePath(id);
             var list = values.Select(kvp => new StoreItem() { Name = kvp.Key, Value = kvp.Value, Type = kvp.Value?.GetType() });
             string serialized = JsonConvert.SerializeObject(list, new JsonSerializerSettings() { Formatting = Formatting.Indented, TypeNameHandling=TypeNameHandling.None, Converters = new JsonConverter[] { new IPAddressConverter() } });
 
-            string directory = Path.GetDirectoryName(FilePath);
+            string directory = Path.GetDirectoryName(filePath);
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
-            File.WriteAllText(FilePath, serialized);
+            File.WriteAllText(filePath, serialized);
+        }
+
+        private string GetfilePath(string id)
+        {
+            return Path.Combine(FolderPath, $"{id}.json");
+        }
+
+        private static string ConstructPath(Environment.SpecialFolder baseFolder)
+        {
+            string companyPart = string.Empty;
+            string appNamePart = string.Empty;
+
+            Assembly entryAssembly = Assembly.GetEntryAssembly();
+            if (entryAssembly != null)//for unit tests entryAssembly == null
+            {
+                AssemblyCompanyAttribute companyAttribute = (AssemblyCompanyAttribute)Attribute.GetCustomAttribute(entryAssembly, typeof(AssemblyCompanyAttribute));
+                if (!string.IsNullOrEmpty(companyAttribute.Company))
+                    companyPart = string.Format("{0}\\", companyAttribute.Company);
+                AssemblyTitleAttribute titleAttribute = (AssemblyTitleAttribute)Attribute.GetCustomAttribute(entryAssembly, typeof(AssemblyTitleAttribute));
+                if (!string.IsNullOrEmpty(titleAttribute.Title))
+                    appNamePart = string.Format("{0}\\", titleAttribute.Title);
+            }
+
+            return Path.Combine(Environment.GetFolderPath(baseFolder), string.Format(@"{0}{1}", companyPart, appNamePart));
         }
     }
 }

@@ -85,6 +85,7 @@
             // 
             this.tbBlue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbBlue.BackColor = System.Drawing.Color.White;
             this.tbBlue.Location = new System.Drawing.Point(68, 127);
             this.tbBlue.Maximum = 255;
             this.tbBlue.Name = "tbBlue";
@@ -105,6 +106,7 @@
             // 
             this.tbGreen.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbGreen.BackColor = System.Drawing.Color.White;
             this.tbGreen.Location = new System.Drawing.Point(68, 76);
             this.tbGreen.Maximum = 255;
             this.tbGreen.Name = "tbGreen";
@@ -125,6 +127,7 @@
             // 
             this.tbRed.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbRed.BackColor = System.Drawing.Color.White;
             this.tbRed.Location = new System.Drawing.Point(68, 25);
             this.tbRed.Maximum = 255;
             this.tbRed.Name = "tbRed";

@@ -1,38 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 using System.Windows.Forms;
-using Jot;
+using Jot.Configuration;
+using Jot.Storage;
 
 namespace TestWinForms
 {
-    public partial class Form1 : Form
+    public partial class Form1 : Form, ITrackingAware<Form1>
     {
         public Form1()
         {
             InitializeComponent();
 
-            //NOTE:We can't apply settings in the constructor because 
-            //Top and Left won't be honored for some (WinForms related) reason.
-            //We must do it at OnLoad.
+            dataGridView1.DataSource = new List<Person>()
+            {
+                new Person { Name = "Joe", LastName="Smith", Age = 34 },
+                new Person { Name = "Misha", LastName="Anderson", Age = 45 },
+            };
+            // NOTE: 
+            // We cannot call Track(this) in the constructor. Winfors overwrites Top/Left 
+            // properties after the constructor, so we must set them in OnLoad instead.
         }
 
         protected override void OnLoad(EventArgs e)
         {
-            base.OnLoad(e);
+            // track this form
+            Services.Tracker.Track(this);
 
-            //use convenience method for setting up Form tracking
-            Services.Tracker.Configure(this).Apply();
-            
-            //Track colorpicker1 usercontrol (based on specified attributes)
-            Services.Tracker.Configure(colorPicker1).Apply();
+            // track color pickers as separate objects
+            // ColorPicker also implements ITrackingAware so no configuration is needed here
+            Services.Tracker.Track(colorPicker1);
+            Services.Tracker.Track(colorPicker2);
+        }
 
-            //Track colorpicker2 usercontrol (based on specified attributes)
-            Services.Tracker.Configure(colorPicker2).Apply();
+        public void ConfigureTracking(TrackingConfiguration<Form1> configuration)
+        {
+            // include selected tab index when tracking this form
+            configuration.Property(f => f.tabControl1.SelectedIndex);
+
+            // include data grid column widths when tracking this form
+            for (int i = 0; i < dataGridView1.Columns.Count; i++)
+            {
+                var idx = i; // capture i into a variable (cannot use i directly since it changes in each iteration)
+                configuration.Property(f => f.dataGridView1.Columns[idx].Width, "grid_column_" + dataGridView1.Columns[idx].Name);
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Process.Start("explorer.exe", (Services.Tracker.Store as JsonFileStore).FolderPath);
         }
     }
 }

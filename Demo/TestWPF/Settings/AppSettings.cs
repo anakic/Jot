@@ -1,24 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel;
-using System.Drawing;
-using Jot.DefaultInitializer;
+﻿using Jot.Configuration;
 
 namespace TestWPF.Settings
 {
-    public class AppSettings
+    public class AppSettings : ITrackingAware<AppSettings>
     {
-        [Trackable]
         public DisplaySettings DisplaySettings { get; set; }
-        [Trackable]
         public GeneralSettings GeneralSettings { get; set; }
 
         public AppSettings()
         {
             DisplaySettings = new DisplaySettings();
             GeneralSettings = new GeneralSettings();
+        }
+
+        public void ConfigureTracking(TrackingConfiguration<AppSettings> configuration)
+        {
+            configuration.Properties(s => new { s.DisplaySettings, s.GeneralSettings });
+            System.Windows.Application.Current.Exit += (s, e) => { configuration.Tracker.Persist(this); };
         }
     }
 }

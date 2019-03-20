@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Windows;
+using TestWPF.Settings;
 
 namespace TestWPF
 {
@@ -12,5 +13,6 @@ namespace TestWPF
     /// </summary>
     public partial class App : Application
     {
+        public static AppSettings Settings = new AppSettings();
     }
 }
