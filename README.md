@@ -97,7 +97,7 @@ public MainWindow()
     
 	// Start tracking the Window instance.
 	// This will apply any previously stored data and start listening for "WindowClosed" event to persist new data. 
-	Services.Track(this);
+	Services.Tracker.Track(this);
 }
 
 ```
