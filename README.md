@@ -1,5 +1,6 @@
 # Jot - a .NET library for state persistence
 
+[![Build status](https://ci.appveyor.com/api/projects/status/3p31q9b15v46sudk/branch/master?svg=true)](https://ci.appveyor.com/project/anakic/jot/branch/master)
 
 ## Introduction 
 Almost every application needs to keep track of its own state, regardless of what it otherwise does. This typically includes:
@@ -94,9 +95,8 @@ public MainWindow()
 {
 	InitializeComponent();
     
-	// start tracking this Window instance
-	// this will apply any previously stored data and start listening  
-	// for "WindowClosed" event to persist new data. 
+	// Start tracking the Window instance.
+	// This will apply any previously stored data and start listening for "WindowClosed" event to persist new data. 
 	Services.Track(this);
 }
 
@@ -136,7 +136,7 @@ Winforms have a few additional caveats:
 - Forms will return bogus size/location data for maximized/minimized forms, so we have to cancel persisting those
 - Tracking needs to be applied during `OnLoad` since `Top` and `Left` properties set in the constructor are ignored
 
-Here how to properly track (Windows) Forms:
+Here's how to properly track (Windows) Forms:
 
 ``` C#
 // tell the tracker how to track Form objects (this goes in a startup class)
@@ -163,9 +163,14 @@ There are two methods (and several overloads) for telling Jot which properties o
 The `Properties` method accepts an expression that projects the target properties as an anonymous object:
 ```csharp
 tracker.Configure<Person>()
-	.Properties(p => new { p.Name, p.LastName, MothersMaidenName = p.Mother.LastName })  // <-- can navigate object graph
+	.Properties(p => new 
+	{
+		p.Name, 
+		p.LastName, 
+		MothersMaidenName = p.Mother.LastName // <-- can navigate object graph
+	})
 ```
-The `Property` method is used to add propreties one by one. It allows specifying a name and a default value for a property. Since the property name can be passed as a string, this overload is useful for situations where the properties to track are determined at runtime. 
+The `Property` method is used to add propreties one by one. It allows specifying a name and a default value for each property. Since the property name can be passed as a string, this overload is useful for situations where the properties to track are determined at runtime. 
 ```csharp
 tracker.Configure<Person>()
 	.Property(p => p.Name)
@@ -174,12 +179,12 @@ tracker.Configure<Person>()
 	.Property(p => p.Mother.LastName, "MothersMaidenName") // <-- a name must be provided so it does not colide with p.LastName
 ```
 
-The expressions you provide are used to specify which properties to track. The properties usually belong to the target object itself but they can also navigate through other objects (e.g. `p.Mother.LastName`). Based on these expressions, Jot will dynamically generate *getter* and *setter* methods for reading and writing the data. Both methods (`Properties` and `Property`) are cumulative: they add properties to track, rather than overwrite previous calls.
+The expressions you provide to these methods are used to specify which properties to track. The properties usually belong to the target object itself but they can also navigate through other objects (e.g. `p.Mother.LastName`). Based on these expressions, Jot will dynamically generate *getter* and *setter* methods for reading and writing the data. Both methods (`Properties` and `Property`) are cumulative: they add properties to track, rather than overwrite previous calls.
 
 
-## When data is persisted
+## When is the data persisted?
 
-Jot needs to know when a target's data has changed so it can save it to the store. You can tell Jot to automatically persist a target whenever the target fires an event:
+Jot needs to know when a target's data has changed so it can save the updated data to the store. You can tell Jot to automatically persist a target whenever it (the target) fires an event:
 ```csharp
 tracker.Configure<Foo>()
 	.Properties(...)
@@ -189,7 +194,7 @@ You can optionally specify another object as the source of the event:
 ```csharp
 PersistOn("SomeEvent", otherObject)
 ```
-You can also tell Jot explicitly to persist a target using the `Persist` method:
+You can also explicitly tell Jot to persist a target using the `Persist` method:
 ```csharp
 tracker.Persist(targetObj);
 ```
@@ -197,7 +202,7 @@ To tell Jot to persist all tracked objects, use the `PersistAll` method:
 ```csharp
 tracker.PersistAll();
 ```
-Usually, this would be during an application shutdown or at the end of a web request. Jot maintains a list of weak references to target objects. Targets that are already garbage collected are ignored by Jot. 
+Usually, this would be during an application shutdown or at the end of a web request. Jot maintains a list of weak references to target objects. Targets that are already garbage collected are ignored. 
 
 Some objects survive until the end of the application without being in a usable state. For example, a disposed form can still be referenced (and thus not garbage collected). We do not want to continue tracking that form after it is disposed because it will have bogus property values which we do not want to save to the store. For such cases, we can tell Jot to stop tracking a particular object by calling `StopTracking`:
 ```csharp
@@ -211,7 +216,7 @@ tracker.Configure<Form>()
 	.StopTrackingOn(nameof(Form.Closed))  <-- the event that should cause the tracker to stop tracking the target
 ```
 
-## Where data gets stored
+## Where is the data stored?
 
 The `Tracker` class constructor has an optional parameter that allows you to specify where the data will be stored. 
 
@@ -252,22 +257,24 @@ You can use this interface to make Jot store data anywhere you like e.g. in the 
 
 ## Value conversions and cancellation
 
-Jot lets you hook into the Apply and Persist operations. You can use this to perform value conversion and canceling the persist or apply operations for a property. As we've seen in the WinForms example, we can cancel applying size/location properties for Forms that are maximized or minimized:
+Jot lets you hook into the Apply and Persist operations. You can use this to perform value conversion and cancel persisting or applying data. As we've seen in the WinForms example, we can cancel applying size/location properties for Forms that are maximized or minimized:
 
 ```csharp
 tracker.Configure<Form>()
+	.Id(...)
+	.Properties(...)
 	.WhenPersistingProperty((f, p) => p.Cancel = (f.WindowState != FormWindowState.Normal && (p.Property == nameof(Form.Height) || p.Property == nameof(Form.Width) || p.Property == nameof(Form.Top) || p.Property == nameof(Form.Left))))
 ```
 
-There are four hooks you can supply: `WhenPersistingProperty`, `WhenApplyingProperty`, `WhenAppliedState` and `WhenPersisted`.
+There are four hooks you can use: `WhenPersistingProperty`, `WhenApplyingProperty`, `WhenAppliedState` and `WhenPersisted`.
 
 ## Tracking and inheritance
 
-Tracking is configured per-type, meaning a separate `TrackingConfiguration<T>` object will need to be defined for each type of object we track. This configuration object tells Jot how to track objects of that type, but it also applies to objects of derived types. 
+Tracking is configured per-type, meaning that a separate `TrackingConfiguration<T>` object will need to be defined for each type of object we track. This configuration object tells Jot how to track objects of that type, but it also applies to objects of derived types. 
 
 When configuring tracking for a derived type, Jot will examine the inheritance hierarchy of that type and look for the closest ancestor type for which a tracking configuration already exists. If it finds one, it will first create a copy of the base type's tracking configuration which you can then further customize. 
 
-For example, let's suppose you define a form type called `MyForm` which derives from `Form`. In addition to tracking the size and location, you also want to track the selected tab of a TabControl that's part of `MyForm`. Here's what that code for that would look like: 
+For example, let's suppose you define a class called `MyForm` that derives from `Form`. In addition to tracking the size and location, you also want to track the selected tab of a TabControl that's part of `MyForm`. Here's what that might look like: 
 
 ``` csharp
 // configure tracking for Form
@@ -280,7 +287,8 @@ tracker.Configure<Form>()
 
 
 // add the selected tab index for MyForm (everything else is already copied from the configuration for Form)
-tracker.Configure<MyForm>().Properties(f => f.tabControl1.SelectedIndex);
+tracker.Configure<MyForm>()
+	.Properties(f => f.tabControl1.SelectedIndex);
 ```
 We do not have to repeat the tracking configuration for size and location. Since `MyForm` derives from `Form`, the configuration for `MyForm` will be copied from the configuration for `Form` and we only need to add the additional `f.tabControl1.SelectedTabIndex` property.
 
@@ -296,9 +304,9 @@ public interface ITrackingAware<T>
 	void ConfigureTracking(TrackingConfiguration<T> configuration);
 }
 ```
-In the `ConfigureTracking` method, the object can dynamically specify which properties to track. The `configuration` parameter is specific to that instance (and not the type) so each instance can independently configure its own tracking configuration.
+In the `ConfigureTracking` method, the object can dynamically specify which properties to track. The `configuration` parameter is specific to that instance (and not the type) so each instance can independently adjust its tracking configuration.
 
-For example, let's assume we have a form that has a datagrid, and we want to track the widths of grid columns. We could track each grid column object as a separate object, but we can also track those columns as part of the form. Here's what that would look like: 
+For example, let's assume we have a form that has a datagrid, and we want to track the widths of grid columns. We could track each grid column object as a separate object, but we can also track those columns as part of tracking the form. Here's what that might look like: 
 
 ```csharp
 public class MyFormWithDataGrid : ITrackingAware
@@ -322,13 +330,13 @@ public class MyFormWithDataGrid : ITrackingAware
 
 # IOC integration
 
-Here's the really cool part... Once we've explained to Jot how to track different types of objects, all that's needed in order for Jot to track instances of those types is to call:
+Once we've explained to Jot how to track different types of objects, all that's needed in order for Jot to track instances of those types is to call:
 
 ``` C#
 tracker.Track(obj);
 ```
 
-When using an IOC container, many objects in the application will be created by the container. This gives us an opportunity to automatically track all created objects by hooking into the container.
+Here's the really cool part... When using an IOC container, many objects in the application will be created by the container. This gives us an opportunity to automatically track all created objects by hooking into the container.
 
 For example, with [SimpleInjector](https://simpleinjector.org/index.html) we can do this quite easily, with a single line of code:
 
