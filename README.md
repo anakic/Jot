@@ -33,13 +33,13 @@ To illustrate the basic idea, let's compare two ways of dealing with this requir
 ``` C#
 public MainWindow()
 {
-    InitializeComponent();
+	InitializeComponent();
 
-    this.Left = MySettings.Default.MainWindowLeft;
-    this.Top = MySettings.Default.MainWindowTop;
-    this.Width = MySettings.Default.MainWindowWidth;
-    this.Height = MySettings.Default.MainWindowHeight;
-    this.WindowState = MySettings.Default.MainWindowWindowState;
+	this.Left = MySettings.Default.MainWindowLeft;
+	this.Top = MySettings.Default.MainWindowTop;
+	this.Width = MySettings.Default.MainWindowWidth;
+	this.Height = MySettings.Default.MainWindowHeight;
+	this.WindowState = MySettings.Default.MainWindowWindowState;
 } 
 ```
 
@@ -48,15 +48,15 @@ public MainWindow()
 ``` C#
 protected override void OnClosed(EventArgs e)
 {
-    MySettings.Default.MainWindowLeft = this.Left;
-    MySettings.Default.MainWindowTop = this.Top;
-    MySettings.Default.MainWindowWidth = this.Width;
-    MySettings.Default.MainWindowHeight = this.Height;
-    MySettings.Default.MainWindowWindowState = this.WindowState;
+	MySettings.Default.MainWindowLeft = this.Left;
+	MySettings.Default.MainWindowTop = this.Top;
+	MySettings.Default.MainWindowWidth = this.Width;
+	MySettings.Default.MainWindowHeight = this.Height;
+	MySettings.Default.MainWindowWindowState = this.WindowState;
 
-    MySettings.Default.Save();
+	MySettings.Default.Save();
 
-    base.OnClosed(e);
+	base.OnClosed(e);
 }     
 ```
 
@@ -74,7 +74,7 @@ Also notice that for each property of the window, we need to mention it in five 
 static class Services
 {
 	// expose the tracker instance
-    public static Tracker Tracker = new Tracker();
+	public static Tracker Tracker = new Tracker();
 
 	static Services()
 	{
@@ -92,7 +92,7 @@ static class Services
 ``` C#
 public MainWindow()
 {
-    InitializeComponent();
+	InitializeComponent();
     
 	// start tracking this Window instance
 	// this will apply any previously stored data and start listening  
@@ -114,10 +114,10 @@ Here's how to properly track a WPF window:
 ``` csharp
 // 1. tell the tracker how to track Window objects (this goes in a startup class)
 tracker.Configure<Window>()
-    .Id(w => w.Name, SystemInformation.VirtualScreen.Size) // <-- include the screen resolution in the id
-    .Properties(w => new { w.Top, w.Width, w.Height, w.Left, w.WindowState })
-    .PersistOn(nameof(Window.Closing))
-    .StopTrackingOn(nameof(Window.Closing));
+	.Id(w => w.Name, SystemInformation.VirtualScreen.Size) // <-- include the screen resolution in the id
+	.Properties(w => new { w.Top, w.Width, w.Height, w.Left, w.WindowState })
+	.PersistOn(nameof(Window.Closing))
+	.StopTrackingOn(nameof(Window.Closing));
 
 // 2. in the Window constructor
 public Window1()
@@ -243,8 +243,8 @@ The `IStore` interface is very simple. For a given Id, it needs to be able to st
 ```C#
 public interface IStore
 {
-    void SetData(string id, IDictionary<string, object> values);
-    IDictionary<string, object> GetData(string id);
+	void SetData(string id, IDictionary<string, object> values);
+	IDictionary<string, object> GetData(string id);
 }
 ``` 
 
@@ -293,7 +293,7 @@ Sometimes we cannot know at compile time which properties to track. In those sit
 ```csharp
 public interface ITrackingAware<T>
 {
-    void ConfigureTracking(TrackingConfiguration<T> configuration);
+	void ConfigureTracking(TrackingConfiguration<T> configuration);
 }
 ```
 In the `ConfigureTracking` method, the object can dynamically specify which properties to track. The `configuration` parameter is specific to that instance (and not the type) so each instance can independently configure its own tracking configuration.
@@ -304,18 +304,18 @@ For example, let's assume we have a form that has a datagrid, and we want to tra
 public class MyFormWithDataGrid : ITrackingAware
 {
 	protected override void OnLoad(EventArgs e)
-    {
+	{
 		Services.Tracker.Track(this);
 	}
 
 	public void InitConfiguration(TrackingConfiguration configuration)
 	{
 		// include data grid column widths when tracking this form
-        for (int i = 0; i < dataGridView1.Columns.Count; i++)
-        {
-            var idx = i; // capture i into a variable (cannot use i directly since it changes in each iteration)
-            configuration.Property("grid_c_" + dataGridView1.Columns[idx].Name, f => f.dataGridView1.Columns[idx].Width);
-        }
+		for (int i = 0; i < dataGridView1.Columns.Count; i++)
+		{
+		    var idx = i; // capture i into a variable (cannot use i directly since it changes in each iteration)
+		    configuration.Property("grid_c_" + dataGridView1.Columns[idx].Name, f => f.dataGridView1.Columns[idx].Width);
+		}
 	}
 } 
 ```
