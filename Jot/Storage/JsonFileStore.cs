@@ -157,11 +157,12 @@ namespace Jot.Storage
             return storeItems.ToDictionary(item => item.Name, item => item.Value);
         }
 
-        /// <summary>
-        /// Stores the values as a json file.
-        /// </summary>
-        /// <param name="values"></param>
-        public void SetData(string id, IDictionary<string, object> values)
+		/// <summary>
+		/// Stores the values as a json file.
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="values"></param>
+		public void SetData(string id, IDictionary<string, object> values)
         {
             string filePath = GetfilePath(id);
             var list = values.Select(kvp => new StoreItem() { Name = kvp.Key, Value = kvp.Value, Type = kvp.Value?.GetType() });
@@ -189,13 +190,13 @@ namespace Jot.Storage
             {
                 AssemblyCompanyAttribute companyAttribute = (AssemblyCompanyAttribute)Attribute.GetCustomAttribute(entryAssembly, typeof(AssemblyCompanyAttribute));
                 if (!string.IsNullOrEmpty(companyAttribute.Company))
-                    companyPart = string.Format("{0}\\", companyAttribute.Company);
+                    companyPart = $"{companyAttribute.Company}\\";
                 AssemblyTitleAttribute titleAttribute = (AssemblyTitleAttribute)Attribute.GetCustomAttribute(entryAssembly, typeof(AssemblyTitleAttribute));
                 if (!string.IsNullOrEmpty(titleAttribute.Title))
-                    appNamePart = string.Format("{0}\\", titleAttribute.Title);
+                    appNamePart = $"{titleAttribute.Title}\\";
             }
 
-            return Path.Combine(Environment.GetFolderPath(baseFolder), string.Format(@"{0}{1}", companyPart, appNamePart));
+            return Path.Combine(Environment.GetFolderPath(baseFolder), $@"{companyPart}{appNamePart}");
         }
     }
 }
