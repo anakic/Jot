@@ -39,7 +39,7 @@ namespace Jot
         /// <summary>
         /// Creates a new instance of the state tracker with the specified storage. 
         /// </summary>
-        /// <param name="storeFactory">The factory that will create an IStore for each tracked object's data.</param>
+        /// <param name="store">The factory that will create an IStore for each tracked object's data.</param>
         public Tracker(IStore store)
         {
             Store = store;
@@ -140,8 +140,7 @@ namespace Jot
 
             foreach (var target in _trackedObjects.Where(o => o.IsAlive).Select(o => o.Target))
             {
-                ITrackingConfigurationInternal configuration;
-                if (_configurationsDict.TryGetValue(target, out configuration))
+	            if (_configurationsDict.TryGetValue(target, out var configuration))
                     configuration.Persist(target);
             }
         }

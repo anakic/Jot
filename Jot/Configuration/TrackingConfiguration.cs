@@ -196,7 +196,7 @@ namespace Jot.Configuration
                     }
                     catch (Exception ex)
                     {
-                        Trace.WriteLine(string.Format("TRACKING: Applying tracking to property with key='{0}' failed. ExceptionType:'{1}', message: '{2}'!", propertyName, ex.GetType().Name, ex.Message));
+                        Trace.WriteLine($"TRACKING: Applying tracking to property with key='{propertyName}' failed. ExceptionType:'{ex.GetType().Name}', message: '{ex.Message}'!");
                     }
                 }
                 else if (descriptor.IsDefaultSpecified)
@@ -239,7 +239,7 @@ namespace Jot.Configuration
         /// <remarks>
         /// Automatically persist a target object when it fires the specified name.
         /// </remarks>
-        /// <param name="eventName">The names of the events that will cause the target object's data to be persisted.</param>
+        /// <param name="eventNames">The names of the events that will cause the target object's data to be persisted.</param>
         /// <returns></returns>
         public TrackingConfiguration<T> PersistOn(params string[] eventNames)
         {
