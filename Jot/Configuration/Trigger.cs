@@ -27,6 +27,10 @@ namespace Jot.Configuration
             var source = SourceGetter(target);
 
             EventInfo eventInfo = source.GetType().GetEvent(EventName);
+
+            if (eventInfo == null)
+                throw new ArgumentException($"Event '{EventName}' not found on target of type '{source.GetType().Name}'. Check the tracking configuration for this type.");
+
             var parameters = eventInfo.EventHandlerType
                 .GetMethod("Invoke")
                 .GetParameters()
@@ -41,7 +45,7 @@ namespace Jot.Configuration
 
             eventInfo.AddEventHandler(source, handler);
 
-            _handlers.Add(source, handler);
+            _handlers.Add(target, handler);
         }
 
         public void Unsubscribe(object target)
@@ -53,6 +57,11 @@ namespace Jot.Configuration
                 eventInfo.RemoveEventHandler(source, handler);
                 _handlers.Remove(target);
             }
+        }
+
+        internal void Subscribe<T>(T target, object p)
+        {
+            throw new NotImplementedException();
         }
     }
 }
