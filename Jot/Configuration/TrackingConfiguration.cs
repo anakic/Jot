@@ -373,38 +373,35 @@ namespace Jot.Configuration
         }
 
         /// <summary>
-        /// Set up tracking for one or more properties. The projections can be property access expression (e.g. x => x.MyProp) or anonymous type projections (e.g. x => new { x.MyProp1, x.MyProp2 }). 
+        /// Set up tracking for one or more properties. The expression should be an anonymous type projection (e.g. x => new { x.MyProp1, x.MyProp2 }). 
         /// </summary>
         /// <typeparam name="K"></typeparam>
         /// <param name="projections"></param>
         /// <returns></returns>
-        public TrackingConfiguration<T> Properties(params Expression<Func<T, object>>[] projections)
+        public TrackingConfiguration<T> Properties(Expression<Func<T, object>> projection)
         {
-            foreach (var projection in projections)
+            if (projection.Body is NewExpression newExp)
             {
-                if (projection.Body is NewExpression newExp)
+                var accessors = newExp.Members.Select((m, i) =>
                 {
-                    var accessors = newExp.Members.Select((m, i) =>
+                    var right = Expression.Parameter(typeof(object));
+                    var propType = (m as PropertyInfo).PropertyType;
+                    return new
                     {
-                        var right = Expression.Parameter(typeof(object));
-                        var propType = (m as PropertyInfo).PropertyType;
-                        return new
-                        {
-                            name = m.Name,
-                            getter = (Expression.Lambda(Expression.Convert(newExp.Arguments[i] as MemberExpression, typeof(object)), projection.Parameters[0]).Compile() as Func<T, object>),
-                            setter = Expression.Lambda(Expression.Block(Expression.Assign(newExp.Arguments[i], Expression.Convert(right, propType)), Expression.Empty()), projection.Parameters[0], right).Compile() as Action<T, object>
-                        };
-                    });
+                        name = m.Name,
+                        getter = (Expression.Lambda(Expression.Convert(newExp.Arguments[i] as MemberExpression, typeof(object)), projection.Parameters[0]).Compile() as Func<T, object>),
+                        setter = Expression.Lambda(Expression.Block(Expression.Assign(newExp.Arguments[i], Expression.Convert(right, propType)), Expression.Empty()), projection.Parameters[0], right).Compile() as Action<T, object>
+                    };
+                });
 
-                    foreach (var a in accessors)
-                    {
-                        TrackedProperties[a.name] = new TrackedPropertyInfo(x => a.getter((T)x), (x, v) => a.setter((T)x, v));
-                    }
-                }
-                else
+                foreach (var a in accessors)
                 {
-                    throw new ArgumentException("Expression must project properties as an anonymous class e.g. f => new { f.Height, f.Width } or access a single property e.g. f => f.Text.");
+                    TrackedProperties[a.name] = new TrackedPropertyInfo(x => a.getter((T)x), (x, v) => a.setter((T)x, v));
                 }
+            }
+            else
+            {
+                throw new ArgumentException("Expression must project properties as an anonymous class e.g. f => new { f.Height, f.Width } or access a single property e.g. f => f.Text.");
             }
             return this;
         }
