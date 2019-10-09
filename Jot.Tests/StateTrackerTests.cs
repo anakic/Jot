@@ -166,7 +166,7 @@ namespace Jot.Tests
         public void Persist_WhenCalled()
         {
             var cfg1 = _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.B, x = f.Timespan })
                 .PersistOn(nameof(Foo.Event1));
 
@@ -202,7 +202,7 @@ namespace Jot.Tests
         public void HonorsIdNamespace()
         {
             var cfg1 = _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString(), "context1")
+                .Id(f => f.Int.ToString(), "context1", includeType: false)
                 .Properties(f => new { f.B, x = f.Timespan })
                 .PersistOn(nameof(Foo.Event1));
 
@@ -237,7 +237,7 @@ namespace Jot.Tests
         public void PersistNestedProperties()
         {
             var cfg1 = _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.B.Str, x = f.Timespan })
                 .PersistOn(nameof(Foo.Event1));
 
@@ -265,7 +265,7 @@ namespace Jot.Tests
         public void PersistNestedPropertiesWithDynamicNames()
         {
             var cfg1 = _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { x = f.Timespan })
                 .PersistOn(nameof(Foo.Event1));
 
@@ -296,7 +296,7 @@ namespace Jot.Tests
             // 1. arrange
             // prepare cfg for Foo
             _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.B })
                 .PersistOn(nameof(Foo.Event1));
             // create Foo2 instance (derived from Foo)
@@ -325,7 +325,7 @@ namespace Jot.Tests
         public void Persist_WhenDerivedEventFired()
         {
             var cfg1 = _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.B, x = f.Timespan })
                 .PersistOn(nameof(Foo.Event1));
 
@@ -358,7 +358,7 @@ namespace Jot.Tests
         public void Persist_BaseAndOwnedProperties()
         {
             var cfg1 = _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.B, x = f.Timespan })
                 .PersistOn(nameof(Foo.Event1));
 
@@ -394,7 +394,7 @@ namespace Jot.Tests
         public void StopTracking_WhenRequested()
         {
             var cfg1 = _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.Double })
                 .PersistOn(nameof(Foo.Event1));
 
@@ -423,7 +423,7 @@ namespace Jot.Tests
         public void StopTracking_OnEvent()
         {
             var cfg1 = _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.Double })
                 .PersistOn(nameof(Foo.Event1))
                 .StopTrackingOn(nameof(Foo.Event2));
@@ -455,7 +455,7 @@ namespace Jot.Tests
             var fooOther = new Foo();
 
             var cfg1 = _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.Double })
                 .PersistOn(nameof(Foo.Event1))
                 .StopTrackingOn(nameof(Foo.Event2), fooOther);
@@ -486,7 +486,7 @@ namespace Jot.Tests
         {
             List<Tuple<Foo, PropertyOperationData>> callsLog = new List<Tuple<Foo, PropertyOperationData>>();
             _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.Double, f.Timespan })
                 .WhenApplyingProperty((f, pd) => callsLog.Add(new Tuple<Foo, PropertyOperationData>(f, pd)));
 
@@ -512,7 +512,7 @@ namespace Jot.Tests
         public void CancelApplyingWhenRequested()
         {
             _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.Double, f.Timespan })
                 .WhenApplyingProperty((f, pd) => pd.Cancel = pd.Property == "Double");
 
@@ -583,7 +583,7 @@ namespace Jot.Tests
         {
             // arrange (set up cancel for property == Double)
             _tracker.Configure<Foo>()
-                .Id(f => f.Int.ToString())
+                .Id(f => f.Int.ToString(), includeType: false)
                 .Properties(f => new { f.Double, f.Timespan })
                 .WhenPersistingProperty((f, pd) => pd.Cancel = pd.Property == "Double");
 

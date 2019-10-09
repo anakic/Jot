@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text;
+using System.Windows;
 
 namespace Jot.Configuration
 {
@@ -209,21 +210,27 @@ namespace Jot.Configuration
         }
 
 
+        public string GetStoreId(object target) => _idFunc(target);
+
         Func<object, string> _idFunc;
         Func<object, string> ITrackingConfigurationInternal.IdFunc { get => _idFunc; }
+
         /// <summary>
         /// </summary>
         /// <param name="idFunc">The provided function will be used to get an identifier for a target object in order to identify the data that belongs to it.</param>
-        /// <param name="namespaceSegments">Serves to distinguish objects with the same ids that are used in different contexts</param>
+        /// <param name="includeType">If true, the name of the type will be included in the id. This prevents id clashes with different types.</param>
+        /// <param name="namespace">Serves to distinguish objects with the same ids that are used in different contexts.</param>
         /// <returns></returns>
-        public TrackingConfiguration<T> Id(Func<T, string> idFunc, params object[] namespaceSegments)
+        public TrackingConfiguration<T> Id(Func<T, string> idFunc, object @namespace = null, bool includeType = true)
         {
             _idFunc = target =>
             {
                 StringBuilder idBuilder = new StringBuilder();
-                foreach (var seg in namespaceSegments)
-                    idBuilder.Append($"{seg}.");
-                idBuilder.Append(idFunc((T)target));
+                if (includeType)
+                    idBuilder.Append($"[{target.GetType()}]");
+                if (@namespace != null)
+                    idBuilder.Append($"{@namespace}.");
+                idBuilder.Append($"{idFunc((T)target)}");
                 return idBuilder.ToString();
             };
 
