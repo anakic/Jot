@@ -5,20 +5,23 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text;
-using System.Windows;
+using Jot.Configuration.Attributes;
+using System.ComponentModel;
 
 namespace Jot.Configuration
 {
     /// <summary>
     /// A TrackingConfiguration is an object that determines how a target object will be tracked.
     /// </summary>
-    public sealed class TrackingConfiguration<T> : ITrackingConfigurationInternal
+    public class TrackingConfiguration
     {
-        Action<object> _appliedAction;
+        public Type TargetType { get; }
 
-        Action<object, PropertyOperationData> _applyingPropertyAction;
-        Action<object, PropertyOperationData> ITrackingConfigurationInternal.ApplyingPropertyAction { get => _applyingPropertyAction; }
-        Action<object> ITrackingConfigurationInternal.AppliedAction { get => _appliedAction; }
+        Func<object, string> idFunc;
+        Action<object, PropertyOperationData> applyingPropertyAction;
+        Action<object, PropertyOperationData> persistingPropertyAction;
+        Action<object> appliedAction;
+        Action<object> persistedAction;
 
         /// <summary>
         /// The StateTracker that owns this tracking configuration.
@@ -36,33 +39,76 @@ namespace Jot.Configuration
         public List<Trigger> PersistTriggers { get; } = new List<Trigger>();
         public Trigger StopTrackingTrigger { get; set; }
 
-        internal TrackingConfiguration(Tracker tracker)
+        protected TrackingConfiguration(Tracker tracker, Type targetType)
         {
+            TargetType = targetType;
             Tracker = tracker;
-            _idFunc = target => target.GetType().Name;
+            idFunc = target => target.GetType().Name;
+
+            ReadAttributes();
         }
 
-        internal TrackingConfiguration(ITrackingConfigurationInternal baseConfig)
+        protected TrackingConfiguration(TrackingConfiguration baseConfig, Type targetType)
         {
+            TargetType = targetType;
             Tracker = baseConfig.Tracker;
 
-            _idFunc = baseConfig.IdFunc;
+            idFunc = baseConfig.idFunc;
 
-            _appliedAction = baseConfig.AppliedAction;
-            _persistedAction = baseConfig.PersistedAction;
-            _applyingPropertyAction = baseConfig.ApplyingPropertyAction;
-            _persistingPropertyAction = baseConfig.PersistingPropertyAction;
+            appliedAction = baseConfig.appliedAction;
+            persistedAction = baseConfig.persistedAction;
+            applyingPropertyAction = baseConfig.applyingPropertyAction;
+            persistingPropertyAction = baseConfig.persistingPropertyAction;
 
             foreach (var kvp in baseConfig.TrackedProperties)
                 TrackedProperties.Add(kvp.Key, kvp.Value);
             PersistTriggers.AddRange(baseConfig.PersistTriggers);
+
+            ReadAttributes();
+        }
+
+        private void ReadAttributes()
+        {
+            // todo: use Expression API to generate getters/setters instead of reflection 
+            // [low priority due to low likelyness of 1M+ invocations]
+
+            //set key if [TrackingKey] detected
+            PropertyInfo keyProperty = TargetType.GetProperties().SingleOrDefault(pi => pi.IsDefined(typeof(TrackingIdAttribute), true));
+            if (keyProperty != null)
+                idFunc = (t) => keyProperty.GetValue(t, null).ToString();
+
+            //add properties that have [Trackable] applied
+            foreach (PropertyInfo pi in TargetType.GetProperties())
+            {
+                TrackableAttribute propTrackableAtt = pi.GetCustomAttributes(true).OfType<TrackableAttribute>().SingleOrDefault();
+                if (propTrackableAtt != null)
+                {
+                    //use [DefaultValue] if present
+                    DefaultValueAttribute defaultAtt = pi.CustomAttributes.OfType<DefaultValueAttribute>().SingleOrDefault();
+                    if (defaultAtt != null)
+                        TrackedProperties[pi.Name] = new TrackedPropertyInfo(x => pi.GetValue(x), (x, v) => pi.SetValue(x, v), defaultAtt.Value);
+                    else
+                        TrackedProperties[pi.Name] = new TrackedPropertyInfo(x => pi.GetValue(x), (x, v) => pi.SetValue(x, v));
+                }
+            }
+
+            foreach (EventInfo eventInfo in TargetType.GetEvents())
+            {
+                var attributes = eventInfo.GetCustomAttributes(true);
+                
+                if (attributes.OfType<PersistOnAttribute>().Any())
+                    PersistOn(eventInfo.Name);
+
+                if (attributes.OfType<StopTrackingOnAttribute>().Any())
+                    StopTrackingOn(eventInfo.Name);
+            }
         }
 
         #region apply/persist events
         private bool OnApplyingProperty(object target, string property, ref object value)
         {
             var args = new PropertyOperationData(property, value);
-            _applyingPropertyAction?.Invoke(target, args);
+            applyingPropertyAction?.Invoke(target, args);
             value = args.Value;
             return !args.Cancel;
         }
@@ -71,15 +117,15 @@ namespace Jot.Configuration
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public TrackingConfiguration<T> WhenApplyingProperty(Action<T, PropertyOperationData> action)
+        public TrackingConfiguration WhenApplyingProperty(Action<object, PropertyOperationData> action)
         {
-            _applyingPropertyAction = (obj, prop) => action((T)obj, prop);
+            applyingPropertyAction = action;
             return this;
         }
 
-        private void OnStateApplied(T target)
+        private void OnStateApplied(object target)
         {
-            _appliedAction?.Invoke(target);
+            appliedAction?.Invoke(target);
         }
 
         /// <summary>
@@ -87,18 +133,16 @@ namespace Jot.Configuration
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public TrackingConfiguration<T> WhenAppliedState(Action<T> action)
+        public TrackingConfiguration WhenAppliedState(Action<object> action)
         {
-            _appliedAction = obj => action((T)obj);
+            appliedAction = action;
             return this;
         }
 
-        Action<object, PropertyOperationData> _persistingPropertyAction;
-        Action<object, PropertyOperationData> ITrackingConfigurationInternal.PersistingPropertyAction { get => _persistingPropertyAction; }
         private bool OnPersistingProperty(object target, string property, ref object value)
         {
             var args = new PropertyOperationData(property, value);
-            _persistingPropertyAction?.Invoke(target, args);
+            persistingPropertyAction?.Invoke(target, args);
             value = args.Value;
             return !args.Cancel;
         }
@@ -108,23 +152,21 @@ namespace Jot.Configuration
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public TrackingConfiguration<T> WhenPersistingProperty(Action<T, PropertyOperationData> action)
+        public TrackingConfiguration WhenPersistingProperty(Action<object, PropertyOperationData> action)
         {
-            _persistingPropertyAction = (obj, prop) => action((T)obj, prop);
+            persistingPropertyAction = action;
             return this;
         }
 
 
-        private void OnStatePersisted(T target)
+        private void OnStatePersisted(object target)
         {
-            _persistedAction?.Invoke(target);
+            persistedAction?.Invoke(target);
         }
 
-        Action<object> _persistedAction;
-        Action<object> ITrackingConfigurationInternal.PersistedAction { get => _persistedAction; }
-        public TrackingConfiguration<T> WhenPersisted(Action<T> action)
+        public TrackingConfiguration WhenPersisted(Action<object> action)
         {
-            _persistedAction = obj => action((T)obj);
+            persistedAction = obj => action(obj);
             return this;
         }
         #endregion
@@ -132,15 +174,15 @@ namespace Jot.Configuration
         /// <summary>
         /// Reads the data from the tracked properties and saves it to the data store for the tracked object.
         /// </summary>
-        void ITrackingConfigurationInternal.Persist(object target)
+        internal void Persist(object target)
         {
-            var name = _idFunc((T)target);
+            var name = idFunc(target);
 
             IDictionary<string, object> originalValues = null;
             var values = new Dictionary<string, object>();
             foreach (string propertyName in TrackedProperties.Keys)
             {
-                var value = TrackedProperties[propertyName].Getter((T)target);
+                var value = TrackedProperties[propertyName].Getter(target);
                 try
                 {
                     var shouldPersist = OnPersistingProperty(target, propertyName, ref value);
@@ -165,15 +207,15 @@ namespace Jot.Configuration
 
             Tracker.Store.SetData(name, values);
 
-            OnStatePersisted((T)target);
+            OnStatePersisted(target);
         }
 
         /// <summary>
         /// Applies any previously stored data to the tracked properties of the target object.
         /// </summary>
-        void ITrackingConfigurationInternal.Apply(object target)
+        internal void Apply(object target)
         {
-            var name = _idFunc((T)target);
+            var name = idFunc(target);
             var data = Tracker.Store.GetData(name);
 
             foreach (string propertyName in TrackedProperties.Keys)
@@ -188,7 +230,7 @@ namespace Jot.Configuration
                         var shouldApply = OnApplyingProperty(target, propertyName, ref value);
                         if (shouldApply)
                         {
-                            descriptor.Setter((T)target, value);
+                            descriptor.Setter(target, value);
                         }
                         else
                         {
@@ -202,18 +244,16 @@ namespace Jot.Configuration
                 }
                 else if (descriptor.IsDefaultSpecified)
                 {
-                    descriptor.Setter((T)target, descriptor.DefaultValue);
+                    descriptor.Setter(target, descriptor.DefaultValue);
                 }
             }
 
-            OnStateApplied((T)target);
+            OnStateApplied(target);
         }
 
 
-        public string GetStoreId(object target) => _idFunc(target);
+        public string GetStoreId(object target) => idFunc(target);
 
-        Func<object, string> _idFunc;
-        Func<object, string> ITrackingConfigurationInternal.IdFunc { get => _idFunc; }
 
         /// <summary>
         /// </summary>
@@ -221,16 +261,16 @@ namespace Jot.Configuration
         /// <param name="includeType">If true, the name of the type will be included in the id. This prevents id clashes with different types.</param>
         /// <param name="namespace">Serves to distinguish objects with the same ids that are used in different contexts.</param>
         /// <returns></returns>
-        public TrackingConfiguration<T> Id(Func<T, string> idFunc, object @namespace = null, bool includeType = true)
+        public TrackingConfiguration Id(Func<object, string> idFunc, object @namespace = null, bool includeType = true)
         {
-            _idFunc = target =>
+            this.idFunc = target =>
             {
                 StringBuilder idBuilder = new StringBuilder();
                 if (includeType)
                     idBuilder.Append($"[{target.GetType()}]");
                 if (@namespace != null)
                     idBuilder.Append($"{@namespace}.");
-                idBuilder.Append($"{idFunc((T)target)}");
+                idBuilder.Append($"{idFunc(target)}");
                 return idBuilder.ToString();
             };
 
@@ -248,7 +288,7 @@ namespace Jot.Configuration
         /// </remarks>
         /// <param name="eventNames">The names of the events that will cause the target object's data to be persisted.</param>
         /// <returns></returns>
-        public TrackingConfiguration<T> PersistOn(params string[] eventNames)
+        public TrackingConfiguration PersistOn(params string[] eventNames)
         {
             foreach (string eventName in eventNames)
                 PersistTriggers.Add(new Trigger(eventName, s => s));
@@ -261,7 +301,7 @@ namespace Jot.Configuration
         /// <param name="eventName"></param>
         /// <param name="eventSourceObject">If not provided, </param>
         /// <returns></returns>
-        public TrackingConfiguration<T> PersistOn(string eventName, object eventSourceObject)
+        public TrackingConfiguration PersistOn(string eventName, object eventSourceObject)
         {
             PersistOn(eventName, target => eventSourceObject);
             return this;
@@ -273,9 +313,9 @@ namespace Jot.Configuration
         /// <param name="eventName">The name of the event that should trigger persisting stete.</param>
         /// <param name="eventSourceGetter"></param>
         /// <returns></returns>
-        public TrackingConfiguration<T> PersistOn(string eventName, Func<T, object> eventSourceGetter)
+        public TrackingConfiguration PersistOn(string eventName, Func<object, object> eventSourceGetter)
         {
-            PersistTriggers.Add(new Trigger(eventName, target => eventSourceGetter((T)target)));
+            PersistTriggers.Add(new Trigger(eventName, target => eventSourceGetter(target)));
             return this;
         }
 
@@ -284,7 +324,7 @@ namespace Jot.Configuration
         /// </summary>
         /// <param name="eventName"></param>
         /// <returns></returns>
-        public TrackingConfiguration<T> StopTrackingOn(string eventName)
+        public TrackingConfiguration StopTrackingOn(string eventName)
         {
             return StopTrackingOn(eventName, target => target);
         }
@@ -295,7 +335,7 @@ namespace Jot.Configuration
         /// <param name="eventName"></param>
         /// <param name="eventSource"></param>
         /// <returns></returns>
-        public TrackingConfiguration<T> StopTrackingOn(string eventName, object eventSource)
+        public TrackingConfiguration StopTrackingOn(string eventName, object eventSource)
         {
             return StopTrackingOn(eventName, target => eventSource);
         }
@@ -306,32 +346,32 @@ namespace Jot.Configuration
         /// <param name="eventName"></param>
         /// <param name="eventSourceGetter"></param>
         /// <returns></returns>
-        public TrackingConfiguration<T> StopTrackingOn(string eventName, Func<T, object> eventSourceGetter)
+        public TrackingConfiguration StopTrackingOn(string eventName, Func<object, object> eventSourceGetter)
         {
-            StopTrackingTrigger = new Trigger(eventName, target => eventSourceGetter((T)target));
+            StopTrackingTrigger = new Trigger(eventName, target => eventSourceGetter(target));
             return this;
         }
 
-        void ITrackingConfigurationInternal.StopTracking(object target)
+        internal void StopTracking(object target)
         {
             // unsubscribe from all trigger events
             foreach (var trigger in PersistTriggers)
-                trigger.Unsubscribe((T)target);
+                trigger.Unsubscribe(target);
 
             // unsubscribe from stoptracking trigger too
-            StopTrackingTrigger?.Unsubscribe((T)target);
+            StopTrackingTrigger?.Unsubscribe(target);
 
             Tracker.RemoveFromList(target);
         }
 
-        void ITrackingConfigurationInternal.StartTracking(object target)
+        internal void StartTracking(object target)
         {
             // listen for trigger events (for persisting)
             foreach (var trigger in PersistTriggers)
-                trigger.Subscribe((T)target, () => (this as ITrackingConfigurationInternal).Persist(target));
+                trigger.Subscribe(target, () => Persist(target));
 
             // listen to stoptracking event
-            StopTrackingTrigger?.Subscribe((T)target, () => (this as ITrackingConfigurationInternal).StopTracking(target));
+            StopTrackingTrigger?.Subscribe(target, () => StopTracking(target));
         }
 
         /// <summary>
@@ -341,9 +381,9 @@ namespace Jot.Configuration
         /// <param name="name"></param>
         /// <param name="propertyAccessExpression"></param>
         /// <returns></returns>
-        public TrackingConfiguration<T> Property<K>(Expression<Func<T, K>> propertyAccessExpression, string name = null)
+        public TrackingConfiguration Property<T, K>(Expression<Func<T, K>> propertyAccessExpression, string name = null)
         {
-            return Property(name, propertyAccessExpression, false, default(K));
+            return Property(name, propertyAccessExpression, false, default);
         }
 
         /// <summary>
@@ -354,12 +394,12 @@ namespace Jot.Configuration
         /// <param name="propertyAccessExpression">The expression that points to the specified property. Can navigate multiple levels.</param>
         /// <param name="defaultValue">If there is no value in the store for the property, the defaultValue will be used.</param>
         /// <returns></returns>
-        public TrackingConfiguration<T> Property<TProperty>(Expression<Func<T, TProperty>> propertyAccessExpression, TProperty defaultValue, string name = null)
+        public TrackingConfiguration Property<T, TProperty>(Expression<Func<T, TProperty>> propertyAccessExpression, TProperty defaultValue, string name = null)
         {
             return Property(name, propertyAccessExpression, true, defaultValue);
         }
 
-        private TrackingConfiguration<T> Property<TProperty>(string name, Expression<Func<T, TProperty>> propertyAccessExpression, bool defaultSpecified, TProperty defaultValue)
+        protected TrackingConfiguration Property<T, TProperty>(string name, Expression<Func<T, TProperty>> propertyAccessExpression, bool defaultSpecified, TProperty defaultValue)
         {
             if (name == null && propertyAccessExpression.Body is MemberExpression me)
             {
@@ -385,7 +425,7 @@ namespace Jot.Configuration
         /// <typeparam name="K"></typeparam>
         /// <param name="projections"></param>
         /// <returns></returns>
-        public TrackingConfiguration<T> Properties(Expression<Func<T, object>> projection)
+        public TrackingConfiguration Properties<T>(Expression<Func<T, object>> projection)
         {
             if (projection.Body is NewExpression newExp)
             {

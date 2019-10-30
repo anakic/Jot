@@ -1,4 +1,8 @@
-﻿namespace Jot.Configuration
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Jot.Configuration
 {
     /// <summary>
     /// Allows the object that is being tracked to customize

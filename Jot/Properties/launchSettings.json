@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Jot": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}

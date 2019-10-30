@@ -94,6 +94,33 @@ namespace Jot.Tests
             Assert.Equal(testData1.Double, testData2.Double);
             Assert.Equal(testData1.Int, testData2.Int);
             Assert.Equal(testData2.Timespan, new TimeSpan(0, 0, 0));//we did not track the TimeSpan property
+
+        }
+
+        [Fact]
+        public void DetectsAttributes()
+        {
+            _tracker.Configure<FooAtt>();
+
+            //save some data
+            var testData1 = new FooAtt() { Double = 123.45, Int = 456, Timespan = new TimeSpan(99, 99, 99) };
+            _tracker.Track(testData1);
+            testData1.Double = 888;
+            testData1.FireRequest();
+            testData1.FireStop();
+            testData1.Double = 777;
+            testData1.FireRequest();
+
+
+            // simulate application restart and read the saved data
+            _tracker = new Tracker(_store);
+            var testData2 = new FooAtt() { Int = 456 };
+            _tracker.Configure<FooAtt>();
+            _tracker.Track(testData2);
+
+            Assert.Equal(888, testData2.Double);
+            Assert.Equal(testData1.Int, testData2.Int);
+            Assert.Equal(testData2.Timespan, new TimeSpan(99, 99, 99));
         }
 
         [Fact]
@@ -137,20 +164,6 @@ namespace Jot.Tests
             storeMoq.Verify(s => s.SetData(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()), Times.Never);
             tracker.PersistAll();
             storeMoq.Verify(s => s.SetData(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()), Times.Never);
-        }
-
-        [Fact]
-        public void HonorITrackingAware()
-        {
-            var data = new TestTrackingAware() { Value1 = "abc", Value2 = 123 };
-            _tracker.Track(data);
-            _tracker.Persist(data);
-
-            var data2 = new TestTrackingAware();
-            _tracker.Track(data2);
-
-            Assert.Equal("abc", data2.Value1);
-            Assert.Equal(123, data2.Value2);
         }
 
         [Fact]
@@ -206,31 +219,22 @@ namespace Jot.Tests
                 .Properties(f => new { f.B, x = f.Timespan })
                 .PersistOn(nameof(Foo.Event1));
 
-            var cfg2 = _tracker.Configure<Foo2>()
-                .PersistOn(nameof(Foo2.DerivedEvent))
-                .Property(f2 => f2.DerivedFooProp1);
-
-            var foo2 = new Foo2()
+            var foo = new Foo()
             {
                 Double = 123,
                 Int = 321,
                 Timespan = new TimeSpan(1, 2, 3),
-                DerivedFooProp1 = "str1",
-                DerivedFooProp2 = "str2",
                 B = new Bar() { Id = Guid.NewGuid(), Str = "BarStr" }
             };
 
-            _tracker.Track(foo2);
-            _tracker.Persist(foo2);
-
-            Assert.NotSame(cfg1, cfg2);
+            _tracker.Track(foo);
+            _tracker.Persist(foo);
 
             var data = _store.GetData("context1.321");
-            Assert.Equal(3, data.Count);
-            Assert.Equal(foo2.DerivedFooProp1, data["DerivedFooProp1"]);
-            Assert.Equal(foo2.Timespan, data["x"]);
-            Assert.Equal(foo2.B.Id, (data["B"] as Bar).Id);
-            Assert.Equal(foo2.B.Str, (data["B"] as Bar).Str);
+            Assert.Equal(2, data.Count);
+            Assert.Equal(foo.Timespan, data["x"]);
+            Assert.Equal(foo.B.Id, (data["B"] as Bar).Id);
+            Assert.Equal(foo.B.Str, (data["B"] as Bar).Str);
         }
 
         [Fact]

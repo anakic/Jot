@@ -17,7 +17,7 @@ namespace Jot
         Dictionary<Type, object> _typeConfigurations = new Dictionary<Type, object>();
 
         // Weak reference dictionary
-        ConditionalWeakTable<object, ITrackingConfigurationInternal> _configurationsDict = new ConditionalWeakTable<object, ITrackingConfigurationInternal>();
+        ConditionalWeakTable<object, TrackingConfiguration> _configurationsDict = new ConditionalWeakTable<object, TrackingConfiguration>();
 
         // Workaround:
         // ConditionalWeakTable does not support getting a list of all keys, which we need for a global persist
@@ -45,12 +45,14 @@ namespace Jot
             Store = store;
         }
 
-        public void Track<T>(T target)
+        // todo: allow caller to configure
+        public void Track<T>(T target, Action<T> configure = null, bool inheritConfig = true)
         {
             if (!_configurationsDict.TryGetValue(target, out _))
             {
-                // find a configuration for this type of the nearest base type, or create a new one
-                ITrackingConfigurationInternal config = Configure<T>();
+                // find a configuration for this type of the nearest base type
+                // Note: Do not use T as the type. The caller might pass the target as a base type
+                TrackingConfiguration config = FindConfiguration(target.GetType()) ?? new TrackingConfiguration<T>(this);
 
                 // if the object or the caller want to customize the config for this type, copy the config so they don't mess with the config for the type
                 if (target is ITrackingAware<T>)
@@ -88,20 +90,22 @@ namespace Jot
                 if (baseConfig != null)
                     configuration = new TrackingConfiguration<T>(baseConfig);
                 else
+                {
                     configuration = new TrackingConfiguration<T>(this);
+                }
                 _typeConfigurations[typeof(T)] = configuration;
             }
             return configuration;
         }
 
-        private ITrackingConfigurationInternal FindConfiguration(Type type)
+        private TrackingConfiguration FindConfiguration(Type type)
         {
             var config = _typeConfigurations.ContainsKey(type) ? _typeConfigurations[type] : null;
             if (config != null)
-                return (ITrackingConfigurationInternal)config;
+                return (TrackingConfiguration)config;
             else
             {
-                if (type == typeof(object))
+                if (type == typeof(object) || type.BaseType == null)
                     return null;
                 else
                     return FindConfiguration(type.BaseType);
@@ -110,7 +114,7 @@ namespace Jot
 
         public void StopTracking(object target)
         {
-            if (_configurationsDict.TryGetValue(target, out ITrackingConfigurationInternal cfg))
+            if (_configurationsDict.TryGetValue(target, out TrackingConfiguration cfg))
             {
                 cfg.StopTracking(target);
             }
@@ -125,7 +129,7 @@ namespace Jot
 
         public void Persist(object target)
         {
-            if (_configurationsDict.TryGetValue(target, out ITrackingConfigurationInternal config))
+            if (_configurationsDict.TryGetValue(target, out TrackingConfiguration config))
                 config.Persist(target);
             else
                 throw new ArgumentException("Target object is not being tracked", nameof(target));
