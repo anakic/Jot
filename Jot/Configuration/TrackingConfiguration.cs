@@ -18,6 +18,8 @@ namespace Jot.Configuration
         public Type TargetType { get; }
 
         Func<object, string> idFunc;
+        Func<object, bool> canPersistFunc = x => true;
+
         Action<object, PropertyOperationData> applyingPropertyAction;
         Action<object, PropertyOperationData> persistingPropertyAction;
         Action<object> appliedAction;
@@ -72,6 +74,8 @@ namespace Jot.Configuration
             // todo: use Expression API to generate getters/setters instead of reflection 
             // [low priority due to low likelyness of 1M+ invocations]
 
+            // todo: add [CanPersist] attribute and use it for canReadFunc
+
             //set key if [TrackingKey] detected
             PropertyInfo keyProperty = TargetType.GetProperties().SingleOrDefault(pi => pi.IsDefined(typeof(TrackingIdAttribute), true));
             if (keyProperty != null)
@@ -95,7 +99,7 @@ namespace Jot.Configuration
             foreach (EventInfo eventInfo in TargetType.GetEvents())
             {
                 var attributes = eventInfo.GetCustomAttributes(true);
-                
+
                 if (attributes.OfType<PersistOnAttribute>().Any())
                     PersistOn(eventInfo.Name);
 
@@ -112,6 +116,7 @@ namespace Jot.Configuration
             value = args.Value;
             return !args.Cancel;
         }
+
         /// <summary>
         /// Allows value conversion and cancallation when applying a stored value to a property.
         /// </summary>
@@ -158,7 +163,6 @@ namespace Jot.Configuration
             return this;
         }
 
-
         private void OnStatePersisted(object target)
         {
             persistedAction?.Invoke(target);
@@ -176,38 +180,41 @@ namespace Jot.Configuration
         /// </summary>
         internal void Persist(object target)
         {
-            var name = idFunc(target);
-
-            IDictionary<string, object> originalValues = null;
-            var values = new Dictionary<string, object>();
-            foreach (string propertyName in TrackedProperties.Keys)
+            if(canPersistFunc(target))
             {
+                var name = idFunc(target);
+
+                IDictionary<string, object> originalValues = null;
+                var values = new Dictionary<string, object>();
+                foreach (string propertyName in TrackedProperties.Keys)
+                {
                 var value = TrackedProperties[propertyName].Getter(target);
-                try
-                {
-                    var shouldPersist = OnPersistingProperty(target, propertyName, ref value);
-                    if (shouldPersist)
+                    try
                     {
-                        values[propertyName] = value;
+                        var shouldPersist = OnPersistingProperty(target, propertyName, ref value);
+                        if (shouldPersist)
+                        {
+                            values[propertyName] = value;
+                        }
+                        else
+                        {
+                            // keeping previously stored value in case persist cancelled
+                            originalValues = originalValues ?? Tracker.Store.GetData(name);
+                            values[propertyName] = originalValues[propertyName];
+                            Trace.WriteLine($"Persisting cancelled, key='{name}', property='{propertyName}'.");
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        // keeping previously stored value in case persist cancelled
-                        originalValues = originalValues ?? Tracker.Store.GetData(name);
-                        values[propertyName] = originalValues[propertyName];
-                        Trace.WriteLine($"Persisting cancelled, key='{name}', property='{propertyName}'.");
+                        // todo: replace with ILogger
+                        Trace.WriteLine($"Persisting failed, property key = '{name}', property = {propertyName}, message='{ex.Message}'.");
                     }
                 }
-                catch (Exception ex)
-                {
-                    // todo: replace with ILogger
-                    Trace.WriteLine($"Persisting failed, property key = '{name}', property = {propertyName}, message='{ex.Message}'.");
-                }
+
+                Tracker.Store.SetData(name, values);
+
+                OnStatePersisted(target);
             }
-
-            Tracker.Store.SetData(name, values);
-
-            OnStatePersisted(target);
         }
 
         /// <summary>
@@ -276,6 +283,13 @@ namespace Jot.Configuration
 
             return this;
         }
+
+        public TrackingConfiguration CanPersist(Func<object, bool> canPersistFunc)
+        {
+            this.canPersistFunc = canPersistFunc;
+            return this;
+        }
+
 
         /// <summary>
         /// Registers the specified event of the target object as a trigger that will cause the target's data to be persisted.

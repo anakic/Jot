@@ -74,6 +74,16 @@ namespace Jot.Configuration
         }
 
         /// <summary>
+        /// </summary>
+        /// <param name="canPersistFunc">The provided function will be used to get an identifier for a target object in order to identify the data that belongs to it.</param>
+        /// <returns></returns>
+        public TrackingConfiguration<T> CanPersist(Func<T, bool> canPersistFunc)
+        {
+            base.CanPersist(t => canPersistFunc((T)t));
+            return this;
+        }
+
+        /// <summary>
         /// Registers the specified event of the target object as a trigger that will cause the target's data to be persisted.
         /// </summary>
         /// <example>
