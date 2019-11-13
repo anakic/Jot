@@ -188,9 +188,9 @@ namespace Jot.Configuration
                 var values = new Dictionary<string, object>();
                 foreach (string propertyName in TrackedProperties.Keys)
                 {
-                var value = TrackedProperties[propertyName].Getter(target);
                     try
                     {
+                        var value = TrackedProperties[propertyName].Getter(target);
                         var shouldPersist = OnPersistingProperty(target, propertyName, ref value);
                         if (shouldPersist)
                         {
