@@ -14,14 +14,14 @@ namespace Jot
     public class Tracker
     {
         // configurations for types
-        Dictionary<Type, object> _typeConfigurations = new Dictionary<Type, object>();
+        readonly Dictionary<Type, object> _typeConfigurations = new Dictionary<Type, object>();
 
         // Weak reference dictionary
-        ConditionalWeakTable<object, TrackingConfiguration> _configurationsDict = new ConditionalWeakTable<object, TrackingConfiguration>();
+        readonly ConditionalWeakTable<object, TrackingConfiguration> _configurationsDict = new ConditionalWeakTable<object, TrackingConfiguration>();
 
         // Workaround:
         // ConditionalWeakTable does not support getting a list of all keys, which we need for a global persist
-        List<WeakReference> _trackedObjects = new List<WeakReference>();
+        readonly List<WeakReference> _trackedObjects = new List<WeakReference>();
 
         /// <summary>
         /// The object that is used to store and retrieve tracked data.

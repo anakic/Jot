@@ -8,7 +8,7 @@ namespace Jot.Configuration
 {
     public class Trigger
     {
-        ConditionalWeakTable<object, Delegate> _handlers = new ConditionalWeakTable<object, Delegate>();
+        readonly ConditionalWeakTable<object, Delegate> _handlers = new ConditionalWeakTable<object, Delegate>();
 
         public string EventName { get; }
         public Func<object, object> SourceGetter { get; }
