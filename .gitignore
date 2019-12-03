@@ -22,6 +22,3 @@ storage.ide
 *.obproj.map
 *.cache
 
-publish.bat
-*.pfx
-*.snk
