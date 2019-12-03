@@ -24,3 +24,4 @@ storage.ide
 
 publish.bat
 *.pfx
+*.snk

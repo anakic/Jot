@@ -397,7 +397,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public TrackingConfiguration Property<T, K>(Expression<Func<T, K>> propertyAccessExpression, string name = null)
         {
-            return Property(name, propertyAccessExpression, false, default);
+            return Property(name, propertyAccessExpression, false, default(K));
         }
 
         /// <summary>

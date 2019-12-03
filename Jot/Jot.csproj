@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
@@ -8,17 +8,14 @@
     <Company>Windy Range Software</Company>
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
-    <Description>Jot is a library for tracking application state. Typically this includes window sizes and locations, last entered data, application settings, and user preferences. 
-
-
-
-In short: a better alternative to using settings files.</Description>
+    <Description>Jot is a library for tracking application state. Typically this includes window sizes and locations, last entered data, application settings, and user preferences. In short: a better alternative to using settings files.</Description>
     <Copyright>Windy Range Software d.o.o.</Copyright>
-    <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/anakic/Jot</PackageProjectUrl>
     <RepositoryUrl>https://github.com/anakic/Jot</RepositoryUrl>
     <PackageTags>.net C# dotnet netstandard dotnetcore</PackageTags>
     <AssemblyVersion>2.1.4.0</AssemblyVersion>
+    <AssemblyOriginatorKeyFile>myKey.snk</AssemblyOriginatorKeyFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
