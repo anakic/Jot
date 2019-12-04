@@ -14,7 +14,7 @@
     <RepositoryUrl>https://github.com/anakic/Jot</RepositoryUrl>
     <PackageTags>.net C# dotnet netstandard dotnetcore</PackageTags>
     <AssemblyVersion>2.1.4.0</AssemblyVersion>
-    <AssemblyOriginatorKeyFile>wrs_key.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>mykey.snk</AssemblyOriginatorKeyFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
