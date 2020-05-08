@@ -5,16 +5,17 @@ using Jot.Configuration;
 
 namespace TestWinForms
 {
-    public partial class ColorPickerUC : UserControl, ITrackingAware<ColorPickerUC>
+    public partial class ColorPickerUC : UserControl, ITrackingAware
     {
         public ColorPickerUC()
         {
             InitializeComponent();
         }
 
-        public void ConfigureTracking(TrackingConfiguration<ColorPickerUC> configuration)
+        public void ConfigureTracking(TrackingConfiguration configuration)
         {
             configuration
+                .AsGeneric<ColorPickerUC>()
                 .Id(_ => Name)
                 .Properties(x => new { red = tbRed.Value, green = tbGreen.Value, blue = tbBlue.Value })
                 .PersistOn(nameof(Form.FormClosing), this.FindForm());

@@ -8,18 +8,23 @@ namespace Jot.Configuration
      * This class does not provide any new functionality nor store any additional state. All calls are forwarded to the base class.
      */
 
+        // TODO:
+        // Make this a wrapper class that wraps a non-generic trackingconfiguration
+        // Create instances of this class on-the-fly inside generic methods of the 
+        // Tracker, but do not store references to instances of this class, they are
+        // only for compile time convenience. 
+
     /// <summary>
-    /// A TrackingConfiguration is an object that determines how a target object will be tracked.
+    /// A TrackingConfiguration determines how a target object will be tracked.
+    /// This includes list of properties to track, persist triggers and id getter.
     /// </summary>
     public sealed class TrackingConfiguration<T> : TrackingConfiguration
     {
-        internal TrackingConfiguration(Tracker tracker) : base(tracker, typeof(T))
-        {
-        }
+        private readonly TrackingConfiguration inner;
 
-        internal TrackingConfiguration(TrackingConfiguration baseConfig) 
-            : base(baseConfig, typeof(T))
+        internal TrackingConfiguration(TrackingConfiguration inner)
         {
+            this.inner = inner;
         }
 
         /// <summary>
@@ -29,7 +34,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public TrackingConfiguration<T> WhenApplyingProperty(Action<T, PropertyOperationData> action)
         {
-            base.WhenApplyingProperty((obj, prop) => action((T)obj, prop));
+            inner.WhenApplyingProperty((obj, prop) => action((T)obj, prop));
             return this;
         }
 
@@ -40,7 +45,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public TrackingConfiguration<T> WhenAppliedState(Action<T> action)
         {
-            base.WhenAppliedState(obj => action((T)obj));
+            inner.WhenAppliedState(obj => action((T)obj));
             return this;
         }
 
@@ -51,13 +56,13 @@ namespace Jot.Configuration
         /// <returns></returns>
         public TrackingConfiguration<T> WhenPersistingProperty(Action<T, PropertyOperationData> action)
         {
-            base.WhenPersistingProperty((obj, prop) => action((T)obj, prop));
+            inner.WhenPersistingProperty((obj, prop) => action((T)obj, prop));
             return this;
         }
 
         public TrackingConfiguration<T> WhenPersisted(Action<T> action)
         {
-            base.WhenPersisted(obj => action((T)obj));
+            inner.WhenPersisted(obj => action((T)obj));
             return this;
         }
         
@@ -69,7 +74,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public TrackingConfiguration<T> Id(Func<T, string> idFunc, object @namespace = null, bool includeType = true)
         {
-            base.Id(t => idFunc((T)t), @namespace, includeType);
+            inner.Id(t => idFunc((T)t), @namespace, includeType);
             return this;
         }
 
@@ -79,7 +84,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public TrackingConfiguration<T> CanPersist(Func<T, bool> canPersistFunc)
         {
-            base.CanPersist(t => canPersistFunc((T)t));
+            inner.CanPersist(t => canPersistFunc((T)t));
             return this;
         }
 
@@ -96,7 +101,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public new TrackingConfiguration<T> PersistOn(params string[] eventNames)
         {
-            base.PersistOn(eventNames);
+            inner.PersistOn(eventNames);
             return this;
         }
 
@@ -108,7 +113,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public new TrackingConfiguration<T> PersistOn(string eventName, object eventSourceObject)
         {
-            base.PersistOn(eventName, eventSourceObject);
+            inner.PersistOn(eventName, eventSourceObject);
             return this;
         }
 
@@ -120,7 +125,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public TrackingConfiguration<T> PersistOn(string eventName, Func<T, object> eventSourceGetter)
         {
-            base.PersistOn(eventName, t => eventSourceGetter((T)t));
+            inner.PersistOn(eventName, t => eventSourceGetter((T)t));
             return this;
         }
 
@@ -131,7 +136,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public new TrackingConfiguration<T> StopTrackingOn(string eventName)
         {
-            base.StopTrackingOn(eventName);
+            inner.StopTrackingOn(eventName);
             return this;
         }
 
@@ -143,7 +148,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public new TrackingConfiguration<T> StopTrackingOn(string eventName, object eventSource)
         {
-            base.StopTrackingOn(eventName, eventSource);
+            inner.StopTrackingOn(eventName, eventSource);
             return this;
         }
 
@@ -155,7 +160,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public TrackingConfiguration<T> StopTrackingOn(string eventName, Func<T, object> eventSourceGetter)
         {
-            base.StopTrackingOn(eventName, t => eventSourceGetter((T)t));
+            inner.StopTrackingOn(eventName, t => eventSourceGetter((T)t));
             return this;
         }
 
@@ -186,7 +191,7 @@ namespace Jot.Configuration
 
         private TrackingConfiguration<T> Property<TProperty>(string name, Expression<Func<T, TProperty>> propertyAccessExpression, bool defaultSpecified, TProperty defaultValue)
         {
-            base.Property(name, propertyAccessExpression, defaultSpecified, defaultValue);
+            inner.Property(name, propertyAccessExpression, defaultSpecified, defaultValue);
             return this;
         }
 
@@ -198,7 +203,7 @@ namespace Jot.Configuration
         /// <returns></returns>
         public TrackingConfiguration<T> Properties(Expression<Func<T, object>> projection)
         {
-            base.Properties(projection);
+            inner.Properties(projection);
             return this;
         }
     }

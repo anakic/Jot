@@ -41,7 +41,9 @@ namespace Jot.Configuration
         public List<Trigger> PersistTriggers { get; } = new List<Trigger>();
         public Trigger StopTrackingTrigger { get; set; }
 
-        protected TrackingConfiguration(Tracker tracker, Type targetType)
+        internal TrackingConfiguration() { }
+
+        internal TrackingConfiguration(Tracker tracker, Type targetType)
         {
             TargetType = targetType;
             Tracker = tracker;
@@ -50,7 +52,7 @@ namespace Jot.Configuration
             ReadAttributes();
         }
 
-        protected TrackingConfiguration(TrackingConfiguration baseConfig, Type targetType)
+        internal TrackingConfiguration(TrackingConfiguration baseConfig, Type targetType)
         {
             TargetType = targetType;
             Tracker = baseConfig.Tracker;
@@ -180,7 +182,7 @@ namespace Jot.Configuration
         /// </summary>
         internal void Persist(object target)
         {
-            if(canPersistFunc(target))
+            if (canPersistFunc(target))
             {
                 var name = idFunc(target);
 
@@ -216,6 +218,9 @@ namespace Jot.Configuration
                 OnStatePersisted(target);
             }
         }
+
+        public TrackingConfiguration<T> AsGeneric<T>()
+            => new TrackingConfiguration<T>(this);
 
         /// <summary>
         /// Applies any previously stored data to the tracked properties of the target object.
@@ -413,7 +418,7 @@ namespace Jot.Configuration
             return Property(name, propertyAccessExpression, true, defaultValue);
         }
 
-        protected TrackingConfiguration Property<T, TProperty>(string name, Expression<Func<T, TProperty>> propertyAccessExpression, bool defaultSpecified, TProperty defaultValue)
+        internal TrackingConfiguration Property<T, TProperty>(string name, Expression<Func<T, TProperty>> propertyAccessExpression, bool defaultSpecified, TProperty defaultValue)
         {
             if (name == null && propertyAccessExpression.Body is MemberExpression me)
             {
