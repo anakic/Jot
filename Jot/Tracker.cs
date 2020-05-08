@@ -4,6 +4,8 @@ using System.Linq;
 using Jot.Storage;
 using System.Runtime.CompilerServices;
 using Jot.Configuration;
+using System.Reflection;
+using System.Globalization;
 
 namespace Jot
 {
@@ -14,7 +16,7 @@ namespace Jot
     public class Tracker
     {
         // configurations for types
-        readonly Dictionary<Type, object> _typeConfigurations = new Dictionary<Type, object>();
+        readonly Dictionary<Type, TrackingConfiguration> _typeConfigurations = new Dictionary<Type, TrackingConfiguration>();
 
         // Weak reference dictionary
         readonly ConditionalWeakTable<object, TrackingConfiguration> _configurationsDict = new ConditionalWeakTable<object, TrackingConfiguration>();
@@ -45,55 +47,77 @@ namespace Jot
             Store = store;
         }
 
-        // todo: allow caller to configure
-        public void Track<T>(T target, Action<T> configure = null, bool inheritConfig = true)
+        // todo: allow caller to configure via action argument
+        public void Track(object target)
         {
-            if (!_configurationsDict.TryGetValue(target, out _))
+            // find configuration for the target
+            TrackingConfiguration config = Configure(target);
+
+            // apply any previously stored data
+            config.Apply(target);
+            
+            // listen for persist requests
+            config.StartTracking(target);
+
+            // add to list of objects to track
+            _trackedObjects.Add(new WeakReference(target));
+        }
+
+        public void Apply(object target)
+        {
+            this.Configure(target)
+                .Apply(target);
+        }
+
+        public TrackingConfiguration Configure(object target)
+        {
+            TrackingConfiguration config;
+            if (_configurationsDict.TryGetValue(target, out TrackingConfiguration cfg))
+                config = cfg;
+            else
             {
-                // find a configuration for this type of the nearest base type
-                // Note: Do not use T as the type. The caller might pass the target as a base type
-                TrackingConfiguration config = FindConfiguration(target.GetType()) ?? new TrackingConfiguration<T>(this);
+                config = Configure(target.GetType());
 
                 // if the object or the caller want to customize the config for this type, copy the config so they don't mess with the config for the type
-                if (target is ITrackingAware<T>)
+                if (target is ITrackingAware)
                 {
-                    config = new TrackingConfiguration<T>(config);
+                    config = new TrackingConfiguration(config, target.GetType());
 
                     // allow the object to adjust the configuration
-                    if (target is ITrackingAware<T> ita)
-                        ita?.ConfigureTracking((TrackingConfiguration<T>)config);
+                    if (target is ITrackingAware ita)
+                        ita.ConfigureTracking(config);
                 }
 
-                // keep track of the object
-                _trackedObjects.Add(new WeakReference(target));
                 _configurationsDict.Add(target, config);
 
-                // apply any previously stored data
-                config.Apply(target);
-                // listen to persist trigger events
-                config.StartTracking(target);
             }
+            return config;
         }
 
         public TrackingConfiguration<T> Configure<T>()
         {
-            TrackingConfiguration<T> configuration;
-            if (_typeConfigurations.ContainsKey(typeof(T)))
+            return new TrackingConfiguration<T>(Configure(typeof(T)));
+        }
+
+        public TrackingConfiguration Configure(Type t)
+        {
+            TrackingConfiguration configuration;
+            if (_typeConfigurations.ContainsKey(t))
             {
                 // if a config for this exact type exists return it
-                configuration = (TrackingConfiguration<T>)_typeConfigurations[typeof(T)];
+                configuration = _typeConfigurations[t];
             }
             else
             {
+                // todo: we should make a config for each base type recursively, in case at a later point we add config for a base type
+                // tbd : should configurtions delegate work to base classes, rather than copying their config data?
                 // if a config for this exact type does not exist, copy from base type's config or create a blank one
-                var baseConfig = FindConfiguration(typeof(T));
+                var baseConfig = FindConfiguration(t);
                 if (baseConfig != null)
-                    configuration = new TrackingConfiguration<T>(baseConfig);
+                    configuration = new TrackingConfiguration(baseConfig, t);
                 else
-                {
-                    configuration = new TrackingConfiguration<T>(this);
-                }
-                _typeConfigurations[typeof(T)] = configuration;
+                    configuration = new TrackingConfiguration(this, t);
+                _typeConfigurations[t] = configuration;
             }
             return configuration;
         }
@@ -102,7 +126,7 @@ namespace Jot
         {
             var config = _typeConfigurations.ContainsKey(type) ? _typeConfigurations[type] : null;
             if (config != null)
-                return (TrackingConfiguration)config;
+                return config;
             else
             {
                 if (type == typeof(object) || type.BaseType == null)
@@ -129,10 +153,7 @@ namespace Jot
 
         public void Persist(object target)
         {
-            if (_configurationsDict.TryGetValue(target, out TrackingConfiguration config))
-                config.Persist(target);
-            else
-                throw new ArgumentException("Target object is not being tracked", nameof(target));
+            Configure(target.GetType()).Persist(target);
         }
 
         /// <summary>
@@ -144,7 +165,7 @@ namespace Jot
 
             foreach (var target in _trackedObjects.Where(o => o.IsAlive).Select(o => o.Target))
             {
-	            if (_configurationsDict.TryGetValue(target, out var configuration))
+                if (_configurationsDict.TryGetValue(target, out var configuration))
                     configuration.Persist(target);
             }
         }

@@ -7,7 +7,7 @@ using Jot.Storage;
 
 namespace TestWinForms
 {
-    public partial class Form1 : Form, ITrackingAware<Form1>
+    public partial class Form1 : Form, ITrackingAware
     {
         public Form1()
         {
@@ -34,16 +34,18 @@ namespace TestWinForms
             Services.Tracker.Track(colorPicker2);
         }
 
-        public void ConfigureTracking(TrackingConfiguration<Form1> configuration)
+        public void ConfigureTracking(TrackingConfiguration configuration)
         {
+            var cfg = configuration.AsGeneric<Form1>();
+            
             // include selected tab index when tracking this form
-            configuration.Property(f => f.tabControl1.SelectedIndex);
+            cfg.Property(f => f.tabControl1.SelectedIndex);
 
             // include data grid column widths when tracking this form
             for (int i = 0; i < dataGridView1.Columns.Count; i++)
             {
                 var idx = i; // capture i into a variable (cannot use i directly since it changes in each iteration)
-                configuration.Property(f => f.dataGridView1.Columns[idx].Width, "grid_column_" + dataGridView1.Columns[idx].Name);
+                cfg.Property(f => f.dataGridView1.Columns[idx].Width, "grid_column_" + dataGridView1.Columns[idx].Name);
             }
         }
 

@@ -169,8 +169,13 @@ namespace Jot.Tests
         [Fact]
         public void ReturnSameConfig_IfSameTarget()
         {
-            var cfg1 = _tracker.Configure<Foo>();
-            var cfg2 = _tracker.Configure<Foo>();
+            // note:
+            // the generic version would generate different instances, 
+            // but the generic instances are just throw-away wrappers 
+            // around the non-generic TrackingConfiguration
+
+            var cfg1 = _tracker.Configure(typeof(Foo));
+            var cfg2 = _tracker.Configure(typeof(Foo));
 
             Assert.Same(cfg1, cfg2);
         }
