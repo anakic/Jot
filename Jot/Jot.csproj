@@ -31,7 +31,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
-    <DocumentationFile>D:\Projects\querystorm\Jot\Jot\Jot.xml</DocumentationFile>
+    <DocumentationFile>Jot.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
