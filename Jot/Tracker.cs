@@ -153,7 +153,7 @@ namespace Jot
 
         public void Persist(object target)
         {
-            Configure(target.GetType()).Persist(target);
+            Configure(target).Persist(target);
         }
 
         /// <summary>

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Jot.Tests
 {
-    public class TrackerShould
+    public partial class TrackerShould
     {
         Tracker _tracker;
         TestStore _store = new TestStore();
@@ -62,6 +62,31 @@ namespace Jot.Tests
             _tracker.Configure<Foo>()
                 .Id(f => "x")
                 .Properties(f => new { f.Double, f.Int, f.Timespan });
+            _tracker.Track(testData2);
+
+            // verify  the original data object and the restored data object are the same
+            Assert.Equal(testData1.Double, testData2.Double);
+            Assert.Equal(testData1.Int, testData2.Int);
+            Assert.Equal(testData1.Timespan, testData2.Timespan);
+        }
+
+        [Fact]
+        public void HonorITrackingAware()
+        {
+            // save some data
+            var testData1 = new TrackingAwareTestClass() 
+            { 
+                Double = 123.45, 
+                Int = 456, 
+                Timespan = new TimeSpan(99, 99, 99) 
+            };
+            _tracker.Track(testData1);
+            _tracker.Persist(testData1);
+
+            // simulate application restart and read the saved data
+            _tracker = new Tracker(_store);
+
+            var testData2 = new TrackingAwareTestClass();
             _tracker.Track(testData2);
 
             // verify  the original data object and the restored data object are the same

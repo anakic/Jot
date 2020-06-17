@@ -108,7 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Jot\Jot.csproj">
-      <Project>{e9bc6e7e-b7c2-40ea-83e8-52ba07f6d9d6}</Project>
+      <Project>{77c39ace-7180-4f7d-9b16-8408e1bc058b}</Project>
       <Name>Jot</Name>
     </ProjectReference>
   </ItemGroup>
