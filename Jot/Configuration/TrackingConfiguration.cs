@@ -227,6 +227,9 @@ namespace Jot.Configuration
         /// </summary>
         internal void Apply(object target)
         {
+            if (this.TrackedProperties.Count == 0)
+                return;
+
             var name = idFunc(target);
             var data = Tracker.Store.GetData(name);
 
