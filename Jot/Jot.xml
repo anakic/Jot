@@ -6,10 +6,9 @@
     <members>
         <member name="M:Jot.Configuration.ITrackingAware.ConfigureTracking(Jot.Configuration.TrackingConfiguration)">
             <summary>
-            Called when the object's tracking configuration is first created.
+            Allows an object to configure its tracking.
             </summary>
             <param name="configuration"></param>
-            <returns>Return false to cancel applying state</returns>
         </member>
         <member name="T:Jot.Configuration.TrackedPropertyInfo">
             <summary>
