@@ -449,7 +449,13 @@ namespace Jot.Configuration
         /// <returns></returns>
         public TrackingConfiguration Properties<T>(Expression<Func<T, object>> projection)
         {
-            if (projection.Body is NewExpression newExp)
+            NewExpression newExp = projection.Body as NewExpression;
+
+            // VB.NET encapsulates the new expression in a convert-to-object expression
+            if (newExp == null && projection.Body is UnaryExpression ue && ue.NodeType == ExpressionType.Convert && ue.Type == typeof(object))
+                newExp = ue.Operand as NewExpression;
+
+            if (newExp != null)
             {
                 var accessors = newExp.Members.Select((m, i) =>
                 {
