@@ -28,7 +28,7 @@ namespace Jot.Configuration
         /// <summary>
         /// The StateTracker that owns this tracking configuration.
         /// </summary>
-        public Tracker Tracker { get; }
+        public virtual Tracker Tracker { get; }
 
         /// <summary>
         /// A dictionary containing the tracked properties.
