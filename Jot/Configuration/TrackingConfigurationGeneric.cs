@@ -22,6 +22,8 @@ namespace Jot.Configuration
     {
         private readonly TrackingConfiguration inner;
 
+        public override Tracker Tracker => inner.Tracker;
+
         internal TrackingConfiguration(TrackingConfiguration inner)
         {
             this.inner = inner;
