@@ -27,6 +27,9 @@ namespace Jot.Configuration
             this.inner = inner;
         }
 
+        public void Track<T>(T target)
+            => inner.Tracker.Track(target);
+
         /// <summary>
         /// Allows value conversion and cancallation when applying a stored value to a property.
         /// </summary>
