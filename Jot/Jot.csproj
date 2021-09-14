@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>2.1.9</Version>
+    <Version>2.1.10</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Antonio Nakic-Alfirevic</Authors>
     <Company>Windy Range Software</Company>
@@ -13,9 +13,10 @@
     <PackageProjectUrl>https://github.com/anakic/Jot</PackageProjectUrl>
     <RepositoryUrl>https://github.com/anakic/Jot</RepositoryUrl>
     <PackageTags>.net C# dotnet netstandard dotnetcore settings persistence</PackageTags>
-    <AssemblyVersion>2.1.9.0</AssemblyVersion>
+    <AssemblyVersion>2.1.10.0</AssemblyVersion>
     <AssemblyOriginatorKeyFile>mykey.snk</AssemblyOriginatorKeyFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReleaseNotes>Added XML docs file</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
