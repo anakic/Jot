@@ -71,6 +71,38 @@ namespace Jot.Tests
         }
 
         [Fact]
+        public void TestForget()
+        {
+            // save some data
+            var testData1 = new Foo() { Double = 123.45, Int = 456, Timespan = new TimeSpan(99, 99, 99) };
+            _tracker
+                .Configure<Foo>()
+                .Id(f => "x")
+                .Properties(f => new { f.Double, f.Int, f.Timespan });
+            _tracker.Track(testData1);
+            _tracker.Persist(testData1);
+
+            // simulate application restart and read the saved data
+            _tracker = new Tracker(_store);
+            _tracker.Configure<Foo>()
+                .Id(f => "x")
+                .Properties(f => new { f.Double, f.Int, f.Timespan });
+
+
+            var testData2 = new Foo();
+
+            // forget
+            _tracker.Forget(testData2);
+
+            _tracker.Track(testData2);
+
+            // verify the data from the original object did not survive
+            Assert.Equal(default(double), testData2.Double);
+            Assert.Equal(default(int), testData2.Int);
+            Assert.Equal(default(TimeSpan), testData2.Timespan);
+        }
+
+        [Fact]
         public void HonorITrackingAware()
         {
             // save some data

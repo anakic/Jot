@@ -8,6 +8,17 @@ namespace Jot.Tests.TestData
     class TestStore : IStore
     {
         Dictionary<string, IDictionary<string, object>> data = new Dictionary<string, IDictionary<string, object>>();
+
+        public void ClearAll()
+        {
+            data.Clear();
+        }
+
+        public void ClearData(string id)
+        {
+            data.Remove(id);
+        }
+
         public IDictionary<string, object> GetData(string id)
         {
             if (data.ContainsKey(id))
@@ -15,6 +26,9 @@ namespace Jot.Tests.TestData
             else
                 return null;
         }
+
+        public IEnumerable<string> ListIds()
+            => data.Keys;
 
         public void SetData(string id, IDictionary<string, object> values)
         {

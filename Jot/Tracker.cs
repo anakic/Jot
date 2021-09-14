@@ -69,6 +69,22 @@ namespace Jot
                 .Apply(target);
         }
 
+        public void Forget(string id)
+        {
+            Store.ClearData(id);
+        }
+
+        public void Forget(object target)
+        {
+            var id = this.Configure(target).GetStoreId(target);
+            Forget(id);
+        }
+
+        public void ForgetAll()
+        {
+            Store.ClearAll();
+        }
+
         public TrackingConfiguration Configure(object target)
         {
             TrackingConfiguration config;

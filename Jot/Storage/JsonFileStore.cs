@@ -198,5 +198,21 @@ namespace Jot.Storage
 
             return Path.Combine(Environment.GetFolderPath(baseFolder), $@"{companyPart}{appNamePart}");
         }
+
+        public IEnumerable<string> ListIds()
+        {
+            return Directory.GetFiles(FolderPath, "*.json").Select(Path.GetFileNameWithoutExtension);
+        }
+
+        public void ClearData(string id)
+        {
+            File.Delete(GetfilePath(id));
+        }
+
+        public void ClearAll()
+        {
+            foreach (var id in ListIds())
+                ClearData(id);
+        }
     }
 }
