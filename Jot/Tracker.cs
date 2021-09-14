@@ -48,6 +48,12 @@ namespace Jot
         }
 
         // todo: allow caller to configure via action argument
+
+        /// <summary>
+        /// Track a target object. This will apply any previously stored state to the target and
+        /// start listening for events that indicate persisting new data is required.
+        /// </summary>
+        /// <param name="target"></param>
         public void Track(object target)
         {
             // find configuration for the target
@@ -63,28 +69,44 @@ namespace Jot
             _trackedObjects.Add(new WeakReference(target));
         }
 
+        /// <summary>
+        /// Apply any previously stored data to the target object.
+        /// </summary>
+        /// <param name="target"></param>
         public void Apply(object target)
         {
             this.Configure(target)
                 .Apply(target);
         }
 
+        /// <summary>
+        /// Forget any saved state for the object with the specified id.
+        /// </summary>
         public void Forget(string id)
         {
             Store.ClearData(id);
         }
 
+        /// <summary>
+        /// Forget any saved state for the target object.
+        /// </summary>
         public void Forget(object target)
         {
             var id = this.Configure(target).GetStoreId(target);
             Forget(id);
         }
 
+        /// <summary>
+        /// Forget all saved state.
+        /// </summary>
         public void ForgetAll()
         {
             Store.ClearAll();
         }
 
+        /// <summary>
+        /// Gets or creates a tracking configuration for the target object. 
+        /// </summary>
         public TrackingConfiguration Configure(object target)
         {
             TrackingConfiguration config;
@@ -110,11 +132,21 @@ namespace Jot
             return config;
         }
 
+        /// <summary>
+        /// Gets or creates a tracking configuration for the specified type. Objects of the
+        /// specified type will be tracked according to the settings that are defined in the 
+        /// configuration object.
+        /// </summary>
         public TrackingConfiguration<T> Configure<T>()
         {
             return new TrackingConfiguration<T>(Configure(typeof(T)));
         }
 
+        /// <summary>
+        /// Gets or creates a tracking configuration for the specified type. Objects of the
+        /// specified type will be tracked according to the settings that are defined in the 
+        /// configuration object.
+        /// </summary>
         public TrackingConfiguration Configure(Type t)
         {
             TrackingConfiguration configuration;
@@ -152,6 +184,12 @@ namespace Jot
             }
         }
 
+        /// <summary>
+        /// Stop tracking the target object. This prevents the persisting 
+        /// the target's properties when PersistAll is called on the tracker.
+        /// It is used to prevent saving invalid data when the target object 
+        /// still exists but is in an invalid state (e.g. disposed forms).
+        /// </summary>
         public void StopTracking(object target)
         {
             if (_configurationsDict.TryGetValue(target, out TrackingConfiguration cfg))
@@ -167,6 +205,10 @@ namespace Jot
             _trackedObjects.RemoveAll(t => t.Target == target);
         }
 
+        /// <summary>
+        /// Persists the tracked properties of the target object.
+        /// </summary>
+        /// <param name="target"></param>
         public void Persist(object target)
         {
             Configure(target).Persist(target);

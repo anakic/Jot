@@ -29,7 +29,12 @@ namespace Jot.Configuration
             this.inner = inner;
         }
 
-        public void Track<T>(T target)
+        /// <summary>
+        /// Start tracking the target object. This will apply any previously stored data and start
+        /// listening for events that indicate persisting new data is required.
+        /// </summary>
+        /// <param name="target">The target object to track.</param>
+        public void Track(T target)
             => inner.Tracker.Track(target);
 
         /// <summary>
@@ -201,10 +206,9 @@ namespace Jot.Configuration
         }
 
         /// <summary>
-        /// Set up tracking for one or more properties. The expression should be an anonymous type projection (e.g. x => new { x.MyProp1, x.MyProp2 }). 
+        /// Set up tracking for one or more properties. 
         /// </summary>
-        /// <typeparam name="K"></typeparam>
-        /// <param name="projections"></param>
+        /// <param name="projection">Describes which properties of the target object to track by returning an anonymous type projection (e.g. x => new { x.MyProp1, x.MyProp2 })</param>
         /// <returns></returns>
         public TrackingConfiguration<T> Properties(Expression<Func<T, object>> projection)
         {

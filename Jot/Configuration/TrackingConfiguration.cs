@@ -397,23 +397,31 @@ namespace Jot.Configuration
         }
 
         /// <summary>
-        /// Set up tracking for the specified property.
+        /// Set up tracking for the specified property. Allows supplying a name for the property. 
+        /// This overload is used when the target object has a list of child objects whose properties
+        /// it wishes to track. Each child object's properties can be tracked with a different name,
+        /// e.g. by including the index in the name.
         /// </summary>
-        /// <typeparam name="K"></typeparam>
-        /// <param name="name"></param>
-        /// <param name="propertyAccessExpression"></param>
+        /// <typeparam name="T">Type of target object</typeparam>
+        /// <typeparam name="TProperty">Type of property</typeparam>
+        /// <param name="name">Name to use when tracking the property's data.</param>
+        /// <param name="propertyAccessExpression">The expression that points to the property to track. Supports accessing properties of nested objects.</param>
         /// <returns></returns>
-        public TrackingConfiguration Property<T, K>(Expression<Func<T, K>> propertyAccessExpression, string name = null)
+        public TrackingConfiguration Property<T, TProperty>(Expression<Func<T, TProperty>> propertyAccessExpression, string name = null)
         {
-            return Property(name, propertyAccessExpression, false, default(K));
+            return Property(name, propertyAccessExpression, false, default(TProperty));
         }
 
         /// <summary>
-        /// Set up tracking for the specified property.
+        /// Set up tracking for the specified property. Allows supplying a name for the property. 
+        /// This overload is used when the target object has a list of child objects whose properties
+        /// it wishes to track. Each child object's properties can be tracked with a different name,
+        /// e.g. by including the index in the name.
         /// </summary>
-        /// <typeparam name="TProperty"></typeparam>
-        /// <param name="name">The name of the property in the store</param>
-        /// <param name="propertyAccessExpression">The expression that points to the specified property. Can navigate multiple levels.</param>
+        /// <typeparam name="T">Type of target object</typeparam>
+        /// <typeparam name="TProperty">Type of property</typeparam>
+        /// <param name="name">Name to use when tracking the property's data.</param>
+        /// <param name="propertyAccessExpression">The expression that points to the property to track. Supports accessing properties of nested objects.</param>
         /// <param name="defaultValue">If there is no value in the store for the property, the defaultValue will be used.</param>
         /// <returns></returns>
         public TrackingConfiguration Property<T, TProperty>(Expression<Func<T, TProperty>> propertyAccessExpression, TProperty defaultValue, string name = null)
@@ -444,8 +452,8 @@ namespace Jot.Configuration
         /// <summary>
         /// Set up tracking for one or more properties. The expression should be an anonymous type projection (e.g. x => new { x.MyProp1, x.MyProp2 }). 
         /// </summary>
-        /// <typeparam name="K"></typeparam>
-        /// <param name="projections"></param>
+        /// <typeparam name="T">Type of target object</typeparam>
+        /// <param name="projection">A projection of properties to track. Allows providing nested object properties.</param>
         /// <returns></returns>
         public TrackingConfiguration Properties<T>(Expression<Func<T, object>> projection)
         {

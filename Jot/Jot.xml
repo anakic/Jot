@@ -148,20 +148,28 @@
         </member>
         <member name="M:Jot.Configuration.TrackingConfiguration.Property``2(System.Linq.Expressions.Expression{System.Func{``0,``1}},System.String)">
             <summary>
-            Set up tracking for the specified property.
+            Set up tracking for the specified property. Allows supplying a name for the property. 
+            This overload is used when the target object has a list of child objects whose properties
+            it wishes to track. Each child object's properties can be tracked with a different name,
+            e.g. by including the index in the name.
             </summary>
-            <typeparam name="K"></typeparam>
-            <param name="name"></param>
-            <param name="propertyAccessExpression"></param>
+            <typeparam name="T">Type of target object</typeparam>
+            <typeparam name="TProperty">Type of property</typeparam>
+            <param name="name">Name to use when tracking the property's data.</param>
+            <param name="propertyAccessExpression">The expression that points to the property to track. Supports accessing properties of nested objects.</param>
             <returns></returns>
         </member>
         <member name="M:Jot.Configuration.TrackingConfiguration.Property``2(System.Linq.Expressions.Expression{System.Func{``0,``1}},``1,System.String)">
             <summary>
-            Set up tracking for the specified property.
+            Set up tracking for the specified property. Allows supplying a name for the property. 
+            This overload is used when the target object has a list of child objects whose properties
+            it wishes to track. Each child object's properties can be tracked with a different name,
+            e.g. by including the index in the name.
             </summary>
-            <typeparam name="TProperty"></typeparam>
-            <param name="name">The name of the property in the store</param>
-            <param name="propertyAccessExpression">The expression that points to the specified property. Can navigate multiple levels.</param>
+            <typeparam name="T">Type of target object</typeparam>
+            <typeparam name="TProperty">Type of property</typeparam>
+            <param name="name">Name to use when tracking the property's data.</param>
+            <param name="propertyAccessExpression">The expression that points to the property to track. Supports accessing properties of nested objects.</param>
             <param name="defaultValue">If there is no value in the store for the property, the defaultValue will be used.</param>
             <returns></returns>
         </member>
@@ -169,8 +177,8 @@
             <summary>
             Set up tracking for one or more properties. The expression should be an anonymous type projection (e.g. x => new { x.MyProp1, x.MyProp2 }). 
             </summary>
-            <typeparam name="K"></typeparam>
-            <param name="projections"></param>
+            <typeparam name="T">Type of target object</typeparam>
+            <param name="projection">A projection of properties to track. Allows providing nested object properties.</param>
             <returns></returns>
         </member>
         <member name="T:Jot.Configuration.TrackingConfiguration`1">
@@ -178,6 +186,13 @@
             A TrackingConfiguration determines how a target object will be tracked.
             This includes list of properties to track, persist triggers and id getter.
             </summary>
+        </member>
+        <member name="M:Jot.Configuration.TrackingConfiguration`1.Track(`0)">
+            <summary>
+            Start tracking the target object. This will apply any previously stored data and start
+            listening for events that indicate persisting new data is required.
+            </summary>
+            <param name="target">The target object to track.</param>
         </member>
         <member name="M:Jot.Configuration.TrackingConfiguration`1.WhenApplyingProperty(System.Action{`0,Jot.Configuration.PropertyOperationData})">
             <summary>
@@ -287,10 +302,9 @@
         </member>
         <member name="M:Jot.Configuration.TrackingConfiguration`1.Properties(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
             <summary>
-            Set up tracking for one or more properties. The expression should be an anonymous type projection (e.g. x => new { x.MyProp1, x.MyProp2 }). 
+            Set up tracking for one or more properties. 
             </summary>
-            <typeparam name="K"></typeparam>
-            <param name="projections"></param>
+            <param name="projection">Describes which properties of the target object to track by returning an anonymous type projection (e.g. x => new { x.MyProp1, x.MyProp2 })</param>
             <returns></returns>
         </member>
         <member name="T:Jot.Configuration.PropertyOperationData">
@@ -388,6 +402,67 @@
             Creates a new instance of the state tracker with the specified storage. 
             </summary>
             <param name="store">The factory that will create an IStore for each tracked object's data.</param>
+        </member>
+        <member name="M:Jot.Tracker.Track(System.Object)">
+            <summary>
+            Track a target object. This will apply any previously stored state to the target and
+            start listening for events that indicate persisting new data is required.
+            </summary>
+            <param name="target"></param>
+        </member>
+        <member name="M:Jot.Tracker.Apply(System.Object)">
+            <summary>
+            Apply any previously stored data to the target object.
+            </summary>
+            <param name="target"></param>
+        </member>
+        <member name="M:Jot.Tracker.Forget(System.String)">
+            <summary>
+            Forget any saved state for the object with the specified id.
+            </summary>
+        </member>
+        <member name="M:Jot.Tracker.Forget(System.Object)">
+            <summary>
+            Forget any saved state for the target object.
+            </summary>
+        </member>
+        <member name="M:Jot.Tracker.ForgetAll">
+            <summary>
+            Forget all saved state.
+            </summary>
+        </member>
+        <member name="M:Jot.Tracker.Configure(System.Object)">
+            <summary>
+            Gets or creates a tracking configuration for the target object. 
+            </summary>
+        </member>
+        <member name="M:Jot.Tracker.Configure``1">
+            <summary>
+            Gets or creates a tracking configuration for the specified type. Objects of the
+            specified type will be tracked according to the settings that are defined in the 
+            configuration object.
+            </summary>
+        </member>
+        <member name="M:Jot.Tracker.Configure(System.Type)">
+            <summary>
+            Gets or creates a tracking configuration for the specified type. Objects of the
+            specified type will be tracked according to the settings that are defined in the 
+            configuration object.
+            </summary>
+        </member>
+        <member name="M:Jot.Tracker.StopTracking(System.Object)">
+            <summary>
+            Stop tracking the target object. This prevents the persisting 
+            the target's properties when PersistAll is called on the tracker.
+            It is used to prevent saving invalid data when the target object 
+            still exists but is in an invalid state (e.g. disposed forms).
+            </summary>
+        </member>
+        <member name="M:Jot.Tracker.Persist(System.Object)">
+            <summary>
+            Persists the tracked properties of the target object.
+            </summary>
+            <param name="target"></param>
         </member>
         <member name="M:Jot.Tracker.PersistAll">
             <summary>
