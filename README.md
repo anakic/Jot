@@ -368,3 +368,4 @@ You can contribute to this project in the usual way:
 - Async support
 - IOC demos
 - aspnet core (demo + readme section)
+- readme topics: unity ioc integration, attribute based configuration
