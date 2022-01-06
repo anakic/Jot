@@ -80,6 +80,15 @@ namespace Jot
         }
 
         /// <summary>
+        /// Apply specified defaults to the tracked properties of the target object.
+        /// </summary>
+        public void ApplyDefaults(object target)
+        {
+            this.Configure(target)
+                .ApplyDefaults(target);
+        }
+
+        /// <summary>
         /// Forget any saved state for the object with the specified id.
         /// </summary>
         public void Forget(string id)

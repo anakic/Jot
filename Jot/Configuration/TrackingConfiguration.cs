@@ -266,6 +266,29 @@ namespace Jot.Configuration
             OnStateApplied(target);
         }
 
+        /// <summary>
+        /// Apply specified defaults to the tracked properties of the target object.
+        /// </summary>
+        internal void ApplyDefaults(object target)
+        {
+            if (this.TrackedProperties.Count == 0)
+                return;
+
+            var name = idFunc(target);
+            var data = Tracker.Store.GetData(name);
+
+            foreach (string propertyName in TrackedProperties.Keys)
+            {
+                var descriptor = TrackedProperties[propertyName];
+
+             if (descriptor.IsDefaultSpecified)
+                {
+                    descriptor.Setter(target, descriptor.DefaultValue);
+                }
+            }
+
+            OnStateApplied(target);
+        }
 
         public string GetStoreId(object target) => idFunc(target);
 
