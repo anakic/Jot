@@ -6,6 +6,8 @@ using System.Runtime.CompilerServices;
 using Jot.Configuration;
 using System.Reflection;
 using System.Globalization;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace Jot
 {
@@ -30,11 +32,13 @@ namespace Jot
         /// </summary>
         public IStore Store { get; set; }
 
+        private readonly ILogger<Tracker> _logger;
+
         /// <summary>
         /// Creates a StateTracker that uses json files in a per-user folder to store the data.
         /// </summary>
-        public Tracker()
-            : this(new JsonFileStore())
+        public Tracker(ILogger<Tracker> logger = null)
+            : this(new JsonFileStore(), logger)
         {
         }
 
@@ -42,9 +46,12 @@ namespace Jot
         /// Creates a new instance of the state tracker with the specified storage. 
         /// </summary>
         /// <param name="store">The factory that will create an IStore for each tracked object's data.</param>
-        public Tracker(IStore store)
+        public Tracker(
+            IStore store,
+            ILogger<Tracker> logger = null)
         {
             Store = store;
+            _logger = logger ?? NullLogger<Tracker>.Instance;
         }
 
         // todo: allow caller to configure via action argument
@@ -128,7 +135,7 @@ namespace Jot
                 // if the object or the caller want to customize the config for this type, copy the config so they don't mess with the config for the type
                 if (target is ITrackingAware)
                 {
-                    config = new TrackingConfiguration(config, target.GetType());
+                    config = new TrackingConfiguration(config, target.GetType(), _logger);
 
                     // allow the object to adjust the configuration
                     if (target is ITrackingAware ita)
@@ -136,7 +143,6 @@ namespace Jot
                 }
 
                 _configurationsDict.Add(target, config);
-
             }
             return config;
         }
@@ -148,7 +154,7 @@ namespace Jot
         /// </summary>
         public TrackingConfiguration<T> Configure<T>()
         {
-            return new TrackingConfiguration<T>(Configure(typeof(T)));
+            return new TrackingConfiguration<T>(Configure(typeof(T)), _logger);
         }
 
         /// <summary>
@@ -167,13 +173,13 @@ namespace Jot
             else
             {
                 // todo: we should make a config for each base type recursively, in case at a later point we add config for a base type
-                // tbd : should configurtions delegate work to base classes, rather than copying their config data?
+                // tbd : should configurations delegate work to base classes, rather than copying their config data?
                 // if a config for this exact type does not exist, copy from base type's config or create a blank one
                 var baseConfig = FindConfiguration(t);
                 if (baseConfig != null)
-                    configuration = new TrackingConfiguration(baseConfig, t);
+                    configuration = new TrackingConfiguration(baseConfig, t, _logger);
                 else
-                    configuration = new TrackingConfiguration(this, t);
+                    configuration = new TrackingConfiguration(this, t, _logger);
                 _typeConfigurations[t] = configuration;
             }
             return configuration;

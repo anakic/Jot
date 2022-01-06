@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Text;
 using Jot.Configuration.Attributes;
 using System.ComponentModel;
+using Microsoft.Extensions.Logging;
 
 namespace Jot.Configuration
 {
@@ -25,6 +26,8 @@ namespace Jot.Configuration
         Action<object> appliedAction;
         Action<object> persistedAction;
 
+        private readonly ILogger<Tracker> _logger;
+
         /// <summary>
         /// The StateTracker that owns this tracking configuration.
         /// </summary>
@@ -41,9 +44,16 @@ namespace Jot.Configuration
         public List<Trigger> PersistTriggers { get; } = new List<Trigger>();
         public Trigger StopTrackingTrigger { get; set; }
 
-        internal TrackingConfiguration() { }
+        internal TrackingConfiguration(ILogger<Tracker> logger)
+        {
+            _logger = logger;
+        }
 
-        internal TrackingConfiguration(Tracker tracker, Type targetType)
+        internal TrackingConfiguration(
+            Tracker tracker,
+            Type targetType,
+            ILogger<Tracker> logger)
+            : this(logger)
         {
             TargetType = targetType;
             Tracker = tracker;
@@ -52,7 +62,11 @@ namespace Jot.Configuration
             ReadAttributes();
         }
 
-        internal TrackingConfiguration(TrackingConfiguration baseConfig, Type targetType)
+        internal TrackingConfiguration(
+            TrackingConfiguration baseConfig,
+            Type targetType,
+            ILogger<Tracker> logger)
+            : this(logger)
         {
             TargetType = targetType;
             Tracker = baseConfig.Tracker;
@@ -203,13 +217,12 @@ namespace Jot.Configuration
                             // keeping previously stored value in case persist cancelled
                             originalValues = originalValues ?? Tracker.Store.GetData(name);
                             values[propertyName] = originalValues[propertyName];
-                            Trace.WriteLine($"Persisting cancelled, key='{name}', property='{propertyName}'.");
+                            _logger.LogInformation($"Persisting cancelled, key='{name}', property='{propertyName}'.");
                         }
                     }
                     catch (Exception ex)
                     {
-                        // todo: replace with ILogger
-                        Trace.WriteLine($"Persisting failed, property key = '{name}', property = {propertyName}, message='{ex.Message}'.");
+                        _logger.LogError($"Persisting failed, property key = '{name}', property = {propertyName}, message='{ex.Message}'.");
                     }
                 }
 
@@ -220,7 +233,7 @@ namespace Jot.Configuration
         }
 
         public TrackingConfiguration<T> AsGeneric<T>()
-            => new TrackingConfiguration<T>(this);
+            => new TrackingConfiguration<T>(this, _logger);
 
         /// <summary>
         /// Applies any previously stored data to the tracked properties of the target object.
@@ -249,12 +262,12 @@ namespace Jot.Configuration
                         }
                         else
                         {
-                            Trace.WriteLine($"Persisting cancelled, key='{name}', property='{propertyName}'.");
+                            _logger.LogInformation($"Persisting cancelled, key='{name}', property='{propertyName}'.");
                         }
                     }
                     catch (Exception ex)
                     {
-                        Trace.WriteLine($"TRACKING: Applying tracking to property with key='{propertyName}' failed. ExceptionType:'{ex.GetType().Name}', message: '{ex.Message}'!");
+                        _logger.LogError($"TRACKING: Applying tracking to property with key='{propertyName}' failed. ExceptionType:'{ex.GetType().Name}', message: '{ex.Message}'!");
                     }
                 }
                 else if (descriptor.IsDefaultSpecified)
