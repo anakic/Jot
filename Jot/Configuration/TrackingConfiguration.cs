@@ -94,7 +94,7 @@ namespace Jot.Configuration
                     if (defaultAtt != null)
                         TrackedProperties[pi.Name] = new TrackedPropertyInfo(x => pi.GetValue(x), (x, v) => pi.SetValue(x, v), defaultAtt.Value);
                     else
-                        TrackedProperties[pi.Name] = new TrackedPropertyInfo(x => pi.GetValue(x), (x, v) => pi.SetValue(x, v));
+                        TrackedProperties[pi.Name] = new TrackedPropertyInfo(x => pi.GetValue(x), (x, v) => pi.SetValue(x, Convert.ChangeType(v, pi.PropertyType)));
                 }
             }
 
