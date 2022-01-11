@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Microsoft.Extensions.Logging;
 
 namespace Jot.Configuration
 {
@@ -8,11 +9,11 @@ namespace Jot.Configuration
      * This class does not provide any new functionality nor store any additional state. All calls are forwarded to the base class.
      */
 
-        // TODO:
-        // Make this a wrapper class that wraps a non-generic trackingconfiguration
-        // Create instances of this class on-the-fly inside generic methods of the 
-        // Tracker, but do not store references to instances of this class, they are
-        // only for compile time convenience. 
+    // TODO:
+    // Make this a wrapper class that wraps a non-generic TrackingConfiguration
+    // Create instances of this class on-the-fly inside generic methods of the 
+    // Tracker, but do not store references to instances of this class, they are
+    // only for compile time convenience. 
 
     /// <summary>
     /// A TrackingConfiguration determines how a target object will be tracked.
@@ -24,7 +25,10 @@ namespace Jot.Configuration
 
         public override Tracker Tracker => inner.Tracker;
 
-        internal TrackingConfiguration(TrackingConfiguration inner)
+        internal TrackingConfiguration(
+            TrackingConfiguration inner,
+            ILogger<Tracker> logger)
+            : base(logger)
         {
             this.inner = inner;
         }
@@ -38,7 +42,7 @@ namespace Jot.Configuration
             => inner.Tracker.Track(target);
 
         /// <summary>
-        /// Allows value conversion and cancallation when applying a stored value to a property.
+        /// Allows value conversion and cancellation when applying a stored value to a property.
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
@@ -60,7 +64,7 @@ namespace Jot.Configuration
         }
 
         /// <summary>
-        /// Allows value conversion and cancallation when persisting a property of the target object.
+        /// Allows value conversion and cancellation when persisting a property of the target object.
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
@@ -75,7 +79,7 @@ namespace Jot.Configuration
             inner.WhenPersisted(obj => action((T)obj));
             return this;
         }
-        
+
         /// <summary>
         /// </summary>
         /// <param name="idFunc">The provided function will be used to get an identifier for a target object in order to identify the data that belongs to it.</param>
