@@ -1,34 +1,33 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using Microsoft.Extensions.Logging;
 
 namespace Jot.Configuration
 {
-    /*
-     * Derives from TrackingConfiguration and adds a generic strongly typed API for configuring tracking.
-     * This class does not provide any new functionality nor store any additional state. All calls are forwarded to the base class.
-     */
-
-    // TODO:
-    // Make this a wrapper class that wraps a non-generic TrackingConfiguration
-    // Create instances of this class on-the-fly inside generic methods of the 
-    // Tracker, but do not store references to instances of this class, they are
-    // only for compile time convenience. 
-
     /// <summary>
     /// A TrackingConfiguration determines how a target object will be tracked.
     /// This includes list of properties to track, persist triggers and id getter.
     /// </summary>
-    public sealed class TrackingConfiguration<T> : TrackingConfiguration
+    /// <remarks>
+    /// Derives from TrackingConfiguration and adds a generic strongly typed API for configuring tracking. 
+    /// This class does not provide any new functionality nor store any additional state.All calls are forwarded to the base class.
+    /// </remarks>
+    public sealed class TrackingConfiguration<T> : ITrackingConfiguration
     {
         private readonly TrackingConfiguration inner;
 
-        public override Tracker Tracker => inner.Tracker;
+        public Tracker Tracker => inner.Tracker;
 
-        internal TrackingConfiguration(
-            TrackingConfiguration inner,
-            ILogger<Tracker> logger)
-            : base(logger)
+        public List<Trigger> PersistTriggers => inner.PersistTriggers;
+
+        public Trigger StopTrackingTrigger { get => inner.StopTrackingTrigger; set => inner.StopTrackingTrigger = value; }
+
+        public Type TargetType => inner.TargetType;
+
+        public Dictionary<string, TrackedPropertyInfo> TrackedProperties => inner.TrackedProperties;
+
+        internal TrackingConfiguration(TrackingConfiguration inner)
         {
             this.inner = inner;
         }
@@ -217,6 +216,78 @@ namespace Jot.Configuration
         public TrackingConfiguration<T> Properties(Expression<Func<T, object>> projection)
         {
             inner.Properties(projection);
+            return this;
+        }
+
+        public ITrackingConfiguration CanPersist(Func<object, bool> canPersistFunc)
+            => inner.CanPersist(canPersistFunc);
+
+        public string GetStoreId(object target)
+            => inner.GetStoreId(target);
+
+        ITrackingConfiguration ITrackingConfiguration.Id(Func<object, string> idFunc, object @namespace = null, bool includeType = true)
+        {
+            inner.Id(idFunc, @namespace, includeType);
+            return this;
+        }
+
+        ITrackingConfiguration ITrackingConfiguration.PersistOn(params string[] eventNames)
+        {
+            inner.PersistOn(eventNames);
+            return this;
+        }
+
+        ITrackingConfiguration ITrackingConfiguration.PersistOn(string eventName, Func<object, object> eventSourceGetter)
+        {
+            inner.PersistOn(eventName, eventSourceGetter);
+            return this;
+        }
+
+        ITrackingConfiguration ITrackingConfiguration.PersistOn(string eventName, object eventSourceObject)
+        {
+            inner.PersistOn(eventName, eventSourceObject);
+            return this;
+        }
+
+        ITrackingConfiguration ITrackingConfiguration.StopTrackingOn(string eventName)
+        {
+            inner.StopTrackingOn(eventName);
+            return this;
+        }
+
+        ITrackingConfiguration ITrackingConfiguration.StopTrackingOn(string eventName, Func<object, object> eventSourceGetter)
+        {
+            inner.StopTrackingOn(eventName, eventSourceGetter);
+            return this;
+        }
+
+        ITrackingConfiguration ITrackingConfiguration.StopTrackingOn(string eventName, object eventSource)
+        {
+            inner.StopTrackingOn(eventName, eventSource);
+            return this;
+        }
+
+        ITrackingConfiguration ITrackingConfiguration.WhenAppliedState(Action<object> action)
+        {
+            inner.WhenAppliedState(action);
+            return this;
+        }
+
+        ITrackingConfiguration ITrackingConfiguration.WhenApplyingProperty(Action<object, PropertyOperationData> action)
+        {
+            inner.WhenApplyingProperty(action);
+            return this;
+        }
+
+        ITrackingConfiguration ITrackingConfiguration.WhenPersisted(Action<object> action)
+        {
+            inner.WhenPersisted(action);
+            return this;
+        }
+
+        ITrackingConfiguration ITrackingConfiguration.WhenPersistingProperty(Action<object, PropertyOperationData> action)
+        {
+            inner.WhenPersistingProperty(action);
             return this;
         }
     }

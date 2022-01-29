@@ -191,6 +191,10 @@
             A TrackingConfiguration determines how a target object will be tracked.
             This includes list of properties to track, persist triggers and id getter.
             </summary>
+            <remarks>
+            Derives from TrackingConfiguration and adds a generic strongly typed API for configuring tracking. 
+            This class does not provide any new functionality nor store any additional state.All calls are forwarded to the base class.
+            </remarks>
         </member>
         <member name="M:Jot.Configuration.TrackingConfiguration`1.Track(`0)">
             <summary>

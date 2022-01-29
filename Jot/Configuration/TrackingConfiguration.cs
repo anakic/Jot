@@ -14,7 +14,7 @@ namespace Jot.Configuration
     /// <summary>
     /// A TrackingConfiguration is an object that determines how a target object will be tracked.
     /// </summary>
-    public class TrackingConfiguration
+    public class TrackingConfiguration : ITrackingConfiguration
     {
         public Type TargetType { get; }
 
@@ -138,7 +138,7 @@ namespace Jot.Configuration
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public TrackingConfiguration WhenApplyingProperty(Action<object, PropertyOperationData> action)
+        public ITrackingConfiguration WhenApplyingProperty(Action<object, PropertyOperationData> action)
         {
             applyingPropertyAction = action;
             return this;
@@ -154,7 +154,7 @@ namespace Jot.Configuration
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public TrackingConfiguration WhenAppliedState(Action<object> action)
+        public ITrackingConfiguration WhenAppliedState(Action<object> action)
         {
             appliedAction = action;
             return this;
@@ -173,7 +173,7 @@ namespace Jot.Configuration
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public TrackingConfiguration WhenPersistingProperty(Action<object, PropertyOperationData> action)
+        public ITrackingConfiguration WhenPersistingProperty(Action<object, PropertyOperationData> action)
         {
             persistingPropertyAction = action;
             return this;
@@ -184,7 +184,7 @@ namespace Jot.Configuration
             persistedAction?.Invoke(target);
         }
 
-        public TrackingConfiguration WhenPersisted(Action<object> action)
+        public ITrackingConfiguration WhenPersisted(Action<object> action)
         {
             persistedAction = obj => action(obj);
             return this;
@@ -233,7 +233,7 @@ namespace Jot.Configuration
         }
 
         public TrackingConfiguration<T> AsGeneric<T>()
-            => new TrackingConfiguration<T>(this, _logger);
+            => new TrackingConfiguration<T>(this);
 
         /// <summary>
         /// Applies any previously stored data to the tracked properties of the target object.
@@ -294,7 +294,7 @@ namespace Jot.Configuration
             {
                 var descriptor = TrackedProperties[propertyName];
 
-             if (descriptor.IsDefaultSpecified)
+                if (descriptor.IsDefaultSpecified)
                 {
                     descriptor.Setter(target, descriptor.DefaultValue);
                 }
@@ -312,7 +312,7 @@ namespace Jot.Configuration
         /// <param name="includeType">If true, the name of the type will be included in the id. This prevents id clashes with different types.</param>
         /// <param name="namespace">Serves to distinguish objects with the same ids that are used in different contexts.</param>
         /// <returns></returns>
-        public TrackingConfiguration Id(Func<object, string> idFunc, object @namespace = null, bool includeType = true)
+        public ITrackingConfiguration Id(Func<object, string> idFunc, object @namespace = null, bool includeType = true)
         {
             this.idFunc = target =>
             {
@@ -328,7 +328,7 @@ namespace Jot.Configuration
             return this;
         }
 
-        public TrackingConfiguration CanPersist(Func<object, bool> canPersistFunc)
+        public ITrackingConfiguration CanPersist(Func<object, bool> canPersistFunc)
         {
             this.canPersistFunc = canPersistFunc;
             return this;
@@ -346,7 +346,7 @@ namespace Jot.Configuration
         /// </remarks>
         /// <param name="eventNames">The names of the events that will cause the target object's data to be persisted.</param>
         /// <returns></returns>
-        public TrackingConfiguration PersistOn(params string[] eventNames)
+        public ITrackingConfiguration PersistOn(params string[] eventNames)
         {
             foreach (string eventName in eventNames)
                 PersistTriggers.Add(new Trigger(eventName, s => s));
@@ -359,7 +359,7 @@ namespace Jot.Configuration
         /// <param name="eventName"></param>
         /// <param name="eventSourceObject">If not provided, </param>
         /// <returns></returns>
-        public TrackingConfiguration PersistOn(string eventName, object eventSourceObject)
+        public ITrackingConfiguration PersistOn(string eventName, object eventSourceObject)
         {
             PersistOn(eventName, target => eventSourceObject);
             return this;
@@ -371,7 +371,7 @@ namespace Jot.Configuration
         /// <param name="eventName">The name of the event that should trigger persisting stete.</param>
         /// <param name="eventSourceGetter"></param>
         /// <returns></returns>
-        public TrackingConfiguration PersistOn(string eventName, Func<object, object> eventSourceGetter)
+        public ITrackingConfiguration PersistOn(string eventName, Func<object, object> eventSourceGetter)
         {
             PersistTriggers.Add(new Trigger(eventName, target => eventSourceGetter(target)));
             return this;
@@ -382,7 +382,7 @@ namespace Jot.Configuration
         /// </summary>
         /// <param name="eventName"></param>
         /// <returns></returns>
-        public TrackingConfiguration StopTrackingOn(string eventName)
+        public ITrackingConfiguration StopTrackingOn(string eventName)
         {
             return StopTrackingOn(eventName, target => target);
         }
@@ -393,7 +393,7 @@ namespace Jot.Configuration
         /// <param name="eventName"></param>
         /// <param name="eventSource"></param>
         /// <returns></returns>
-        public TrackingConfiguration StopTrackingOn(string eventName, object eventSource)
+        public ITrackingConfiguration StopTrackingOn(string eventName, object eventSource)
         {
             return StopTrackingOn(eventName, target => eventSource);
         }
@@ -404,7 +404,7 @@ namespace Jot.Configuration
         /// <param name="eventName"></param>
         /// <param name="eventSourceGetter"></param>
         /// <returns></returns>
-        public TrackingConfiguration StopTrackingOn(string eventName, Func<object, object> eventSourceGetter)
+        public ITrackingConfiguration StopTrackingOn(string eventName, Func<object, object> eventSourceGetter)
         {
             StopTrackingTrigger = new Trigger(eventName, target => eventSourceGetter(target));
             return this;
@@ -443,7 +443,7 @@ namespace Jot.Configuration
         /// <param name="name">Name to use when tracking the property's data.</param>
         /// <param name="propertyAccessExpression">The expression that points to the property to track. Supports accessing properties of nested objects.</param>
         /// <returns></returns>
-        public TrackingConfiguration Property<T, TProperty>(Expression<Func<T, TProperty>> propertyAccessExpression, string name = null)
+        public ITrackingConfiguration Property<T, TProperty>(Expression<Func<T, TProperty>> propertyAccessExpression, string name = null)
         {
             return Property(name, propertyAccessExpression, false, default(TProperty));
         }
@@ -460,12 +460,12 @@ namespace Jot.Configuration
         /// <param name="propertyAccessExpression">The expression that points to the property to track. Supports accessing properties of nested objects.</param>
         /// <param name="defaultValue">If there is no value in the store for the property, the defaultValue will be used.</param>
         /// <returns></returns>
-        public TrackingConfiguration Property<T, TProperty>(Expression<Func<T, TProperty>> propertyAccessExpression, TProperty defaultValue, string name = null)
+        public ITrackingConfiguration Property<T, TProperty>(Expression<Func<T, TProperty>> propertyAccessExpression, TProperty defaultValue, string name = null)
         {
             return Property(name, propertyAccessExpression, true, defaultValue);
         }
 
-        internal TrackingConfiguration Property<T, TProperty>(string name, Expression<Func<T, TProperty>> propertyAccessExpression, bool defaultSpecified, TProperty defaultValue)
+        internal ITrackingConfiguration Property<T, TProperty>(string name, Expression<Func<T, TProperty>> propertyAccessExpression, bool defaultSpecified, TProperty defaultValue)
         {
             if (name == null && propertyAccessExpression.Body is MemberExpression me)
             {
@@ -491,7 +491,7 @@ namespace Jot.Configuration
         /// <typeparam name="T">Type of target object</typeparam>
         /// <param name="projection">A projection of properties to track. Allows providing nested object properties.</param>
         /// <returns></returns>
-        public TrackingConfiguration Properties<T>(Expression<Func<T, object>> projection)
+        public ITrackingConfiguration Properties<T>(Expression<Func<T, object>> projection)
         {
             NewExpression newExp = projection.Body as NewExpression;
 

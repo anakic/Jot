@@ -154,7 +154,7 @@ namespace Jot
         /// </summary>
         public TrackingConfiguration<T> Configure<T>()
         {
-            return new TrackingConfiguration<T>(Configure(typeof(T)), _logger);
+            return new TrackingConfiguration<T>(Configure(typeof(T)));
         }
 
         /// <summary>
