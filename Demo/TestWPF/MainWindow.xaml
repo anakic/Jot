@@ -11,7 +11,7 @@
             <TabItem Header="General settings" DataContext="{Binding GeneralSettings}">
                 <Grid VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto" x:Name="firstCol"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
@@ -19,6 +19,7 @@
                         <RowDefinition/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
+                    <GridSplitter HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0,0,0,0" Width="5" Grid.RowSpan="3" Panel.ZIndex="199"></GridSplitter>
                     <Label Content="Property1 (int)" Grid.Row="0" Grid.Column="0"/>
                     <TextBox Text="{Binding Property1}" Grid.Row="0" Grid.Column="1"/>
                     <Label Content="Property2 (string)" Grid.Row="1" Grid.Column="0"/>

@@ -18,10 +18,12 @@ namespace TestWPF
 
             //set up tracking and apply state to the application settings object
             Services.Tracker.Track(App.Settings);
-            
-            // in addition to tracking standard window properties, also track selected tab for MainWindow instances
-            Services.Tracker.Configure<MainWindow>().Property(w => w.tabControl.SelectedIndex, "SelectedTab");
-        
+
+            // in addition to tracking standard window properties, also track selected tab and first-grid-column width for MainWindow instances
+            Services.Tracker.Configure<MainWindow>()
+                .Property(w => w.tabControl.SelectedIndex, "SelectedTab")
+                .Property(w => w.firstCol.Width);
+
             //set up tracking and apply state for the main window
             Services.Tracker.Track(this);
 

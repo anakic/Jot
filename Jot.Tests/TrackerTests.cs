@@ -449,7 +449,7 @@ namespace Jot.Tests
 
             var data = _store.GetData(foo2.Int.ToString());
             Assert.Equal(3, data.Count);
-            Assert.Equal(foo2.DerivedFooProp1, data["DerivedFooProp1"]);
+            Assert.Equal(foo2.DerivedFooProp1, data["f2.DerivedFooProp1"]);
             Assert.Equal(foo2.Timespan, data["x"]);
             Assert.Equal(foo2.B.Id, (data["B"] as Bar).Id);
             Assert.Equal(foo2.B.Str, (data["B"] as Bar).Str);

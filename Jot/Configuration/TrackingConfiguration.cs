@@ -469,7 +469,11 @@ namespace Jot.Configuration
         {
             if (name == null && propertyAccessExpression.Body is MemberExpression me)
             {
-                name = me.Member.Name;
+                // If not specified, use the entire expression as the name of the property.
+                // Note: we don't use just the member name because it might conflict with
+                // another property that uses a different expression but the same member name
+                // e.g. "firstCol.Width" and "secondCol.Width".
+                name = me.ToString();
             }
 
             var membershipExpression = propertyAccessExpression.Body;
