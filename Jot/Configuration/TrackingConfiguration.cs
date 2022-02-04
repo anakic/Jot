@@ -104,7 +104,7 @@ namespace Jot.Configuration
                 if (propTrackableAtt != null)
                 {
                     //use [DefaultValue] if present
-                    DefaultValueAttribute defaultAtt = pi.CustomAttributes.OfType<DefaultValueAttribute>().SingleOrDefault();
+                    DefaultValueAttribute defaultAtt = pi.GetCustomAttribute<DefaultValueAttribute>();
                     if (defaultAtt != null)
                         TrackedProperties[pi.Name] = new TrackedPropertyInfo(x => pi.GetValue(x), (x, v) => pi.SetValue(x, v), defaultAtt.Value);
                     else

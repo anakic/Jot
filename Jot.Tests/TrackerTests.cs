@@ -181,6 +181,15 @@ namespace Jot.Tests
         }
 
         [Fact]
+        public void DetectsDefaultValueAttribute()
+        {
+            //save some data
+            var testData1 = new FooAtt();
+            _tracker.Configure<FooAtt>().Track(testData1);
+            Assert.Equal(3, testData1.DoubleWithDefaultValueOf3);
+        }
+
+        [Fact]
         public void NotUseOtherObjectsData()
         {
             //save some data

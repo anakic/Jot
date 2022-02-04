@@ -1,6 +1,7 @@
 ﻿using Jot.Configuration.Attributes;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace Jot.Tests.TestData
@@ -11,6 +12,8 @@ namespace Jot.Tests.TestData
         public int Int { get; set; }
         [Trackable]
         public double Double { get; set; }
+        [Trackable, DefaultValue(3)]
+        public double DoubleWithDefaultValueOf3 { get; set; }
         [Trackable]
         public TimeSpan Timespan { get; set; }
 
