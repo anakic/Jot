@@ -63,12 +63,16 @@ namespace Jot
         /// <param name="target"></param>
         public void Track(object target)
         {
-            // find configuration for the target
-            TrackingConfiguration config = Configure(target);
-
+            Track(target, Configure(target));
+        }
+        
+        // this is internal to allow TrackingConfiguration to call it so
+        // we can avoid the extra lookup (finding the configuration)
+        internal void Track(object target, TrackingConfiguration config)
+        {
             // apply any previously stored data
             config.Apply(target);
-            
+
             // listen for persist requests
             config.StartTracking(target);
 

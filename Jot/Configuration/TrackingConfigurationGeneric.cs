@@ -38,7 +38,7 @@ namespace Jot.Configuration
         /// </summary>
         /// <param name="target">The target object to track.</param>
         public void Track(T target)
-            => inner.Tracker.Track(target);
+            => inner.Tracker.Track(target, inner);
 
         /// <summary>
         /// Allows value conversion and cancellation when applying a stored value to a property.
