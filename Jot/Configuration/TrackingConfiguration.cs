@@ -106,9 +106,9 @@ namespace Jot.Configuration
                     //use [DefaultValue] if present
                     DefaultValueAttribute defaultAtt = pi.GetCustomAttribute<DefaultValueAttribute>();
                     if (defaultAtt != null)
-                        TrackedProperties[pi.Name] = new TrackedPropertyInfo(x => pi.GetValue(x), (x, v) => pi.SetValue(x, v), defaultAtt.Value);
+                        TrackedProperties[pi.Name] = new TrackedPropertyInfo(x => pi.GetValue(x), (x, v) => SetValue(x, pi, v), defaultAtt.Value);
                     else
-                        TrackedProperties[pi.Name] = new TrackedPropertyInfo(x => pi.GetValue(x), (x, v) => pi.SetValue(x, Convert.ChangeType(v, pi.PropertyType)));
+                        TrackedProperties[pi.Name] = new TrackedPropertyInfo(x => pi.GetValue(x), (x, v) => SetValue(x, pi, v));
                 }
             }
 
@@ -122,6 +122,25 @@ namespace Jot.Configuration
                 if (attributes.OfType<StopTrackingOnAttribute>().Any())
                     StopTrackingOn(eventInfo.Name);
             }
+        }
+
+        private void SetValue(object target, PropertyInfo pi, object value)
+        {
+            object valueToWrite = value;
+            if (value == null)
+            {
+                if (pi.PropertyType.IsValueType)
+                    throw new ArgumentException($"Cannot write null into non-nullable property {pi.Name}");
+            }
+            else
+            {
+                var typeOfValue = value.GetType();
+                
+                // This can happen if we're trying to write an Int64 to an Int32 property (in case of overflow it will throw).
+                if (typeOfValue != pi.PropertyType && !pi.PropertyType.IsAssignableFrom(typeOfValue))
+                    valueToWrite = Convert.ChangeType(value, pi.PropertyType);
+            }
+            pi.SetValue(target, valueToWrite);
         }
 
         #region apply/persist events
