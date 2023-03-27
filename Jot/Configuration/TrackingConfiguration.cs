@@ -137,13 +137,19 @@ namespace Jot.Configuration
                 var typeOfValue = value.GetType();
 
                 // This can happen if we're trying to write an Int64 to an Int32 property (in case of overflow it will throw).
+                // Also can happen for enums.
                 if (typeOfValue != pi.PropertyType && !pi.PropertyType.IsAssignableFrom(typeOfValue))
                 {
                     var converter = TypeDescriptor.GetConverter(pi.PropertyType);
-                    if(converter.CanConvertFrom(typeOfValue))
+                    if (converter.CanConvertFrom(typeOfValue))
                         valueToWrite = converter.ConvertFrom(value);
                     else
-                        valueToWrite = Convert.ChangeType(value, pi.PropertyType);
+                    {
+                        if (pi.PropertyType.IsEnum)
+                            valueToWrite = Enum.ToObject(pi.PropertyType, value);
+                        else
+                            valueToWrite = Convert.ChangeType(value, pi.PropertyType);
+                    }
                 }
             }
             pi.SetValue(target, valueToWrite);
