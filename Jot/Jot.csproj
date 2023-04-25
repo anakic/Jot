@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>2.1.14</Version>
+    <Version>2.1.15</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Antonio Nakic-Alfirevic</Authors>
     <Company>Windy Range Software</Company>
@@ -42,7 +42,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
 </Project>
