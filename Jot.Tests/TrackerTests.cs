@@ -25,7 +25,7 @@ namespace Jot.Tests
             var testData = new Foo() { Double = -99.9f };
             _tracker.Configure<Foo>().Properties(f => new { f.Double });
             _tracker.Track(testData);
-            Assert.Equal(testData.Double, -99.9f);
+            Assert.Equal(-99.9f, testData.Double);
         }
 
         [Fact]

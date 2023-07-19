@@ -111,7 +111,7 @@ namespace Jot.Configuration
         /// </remarks>
         /// <param name="eventNames">The names of the events that will cause the target object's data to be persisted.</param>
         /// <returns></returns>
-        public new TrackingConfiguration<T> PersistOn(params string[] eventNames)
+        public TrackingConfiguration<T> PersistOn(params string[] eventNames)
         {
             inner.PersistOn(eventNames);
             return this;
@@ -123,7 +123,7 @@ namespace Jot.Configuration
         /// <param name="eventName"></param>
         /// <param name="eventSourceObject">If not provided, </param>
         /// <returns></returns>
-        public new TrackingConfiguration<T> PersistOn(string eventName, object eventSourceObject)
+        public TrackingConfiguration<T> PersistOn(string eventName, object eventSourceObject)
         {
             inner.PersistOn(eventName, eventSourceObject);
             return this;
@@ -146,7 +146,7 @@ namespace Jot.Configuration
         /// </summary>
         /// <param name="eventName"></param>
         /// <returns></returns>
-        public new TrackingConfiguration<T> StopTrackingOn(string eventName)
+        public TrackingConfiguration<T> StopTrackingOn(string eventName)
         {
             inner.StopTrackingOn(eventName);
             return this;
@@ -158,7 +158,7 @@ namespace Jot.Configuration
         /// <param name="eventName"></param>
         /// <param name="eventSource"></param>
         /// <returns></returns>
-        public new TrackingConfiguration<T> StopTrackingOn(string eventName, object eventSource)
+        public TrackingConfiguration<T> StopTrackingOn(string eventName, object eventSource)
         {
             inner.StopTrackingOn(eventName, eventSource);
             return this;
@@ -224,7 +224,7 @@ namespace Jot.Configuration
         public string GetStoreId(object target)
             => inner.GetStoreId(target);
 
-        ITrackingConfiguration ITrackingConfiguration.Id(Func<object, string> idFunc, object @namespace = null, bool includeType = true)
+        ITrackingConfiguration ITrackingConfiguration.Id(Func<object, string> idFunc, object @namespace, bool includeType)
         {
             inner.Id(idFunc, @namespace, includeType);
             return this;
