@@ -401,12 +401,12 @@
             The object that is used to store and retrieve tracked data.
             </summary>
         </member>
-        <member name="M:Jot.Tracker.#ctor(Microsoft.Extensions.Logging.ILogger{Jot.Tracker})">
+        <member name="M:Jot.Tracker.#ctor">
             <summary>
             Creates a StateTracker that uses json files in a per-user folder to store the data.
             </summary>
         </member>
-        <member name="M:Jot.Tracker.#ctor(Jot.Storage.IStore,Microsoft.Extensions.Logging.ILogger{Jot.Tracker})">
+        <member name="M:Jot.Tracker.#ctor(Jot.Storage.IStore)">
             <summary>
             Creates a new instance of the state tracker with the specified storage. 
             </summary>
