@@ -118,11 +118,16 @@ namespace Jot.Configuration
 
         private void SetValue(object target, PropertyInfo pi, object value)
         {
-            object valueToWrite = value;
+            var valueToWrite = Convert(value, pi.Name, pi.PropertyType);
+            pi.SetValue(target, valueToWrite);
+        }
+
+        private static object Convert(object value, string propertyName, Type t)
+        {
             if (value == null)
             {
-                if (pi.PropertyType.IsValueType)
-                    throw new ArgumentException($"Cannot write null into non-nullable property {pi.Name}");
+                if (t.IsValueType)
+                    throw new ArgumentException($"Cannot write null into non-nullable property {propertyName}");
             }
             else
             {
@@ -130,21 +135,22 @@ namespace Jot.Configuration
 
                 // This can happen if we're trying to write an Int64 to an Int32 property (in case of overflow it will throw).
                 // Also can happen for enums.
-                if (typeOfValue != pi.PropertyType && !pi.PropertyType.IsAssignableFrom(typeOfValue))
+                if (typeOfValue != t && !t.IsAssignableFrom(typeOfValue))
                 {
-                    var converter = TypeDescriptor.GetConverter(pi.PropertyType);
+                    var converter = TypeDescriptor.GetConverter(t);
                     if (converter.CanConvertFrom(typeOfValue))
-                        valueToWrite = converter.ConvertFrom(value);
+                        return converter.ConvertFrom(value);
                     else
                     {
-                        if (pi.PropertyType.IsEnum)
-                            valueToWrite = Enum.ToObject(pi.PropertyType, value);
+                        if (t.IsEnum)
+                            return Enum.ToObject(t, value);
                         else
-                            valueToWrite = Convert.ChangeType(value, pi.PropertyType);
+                            return System.Convert.ChangeType(value, t);
                     }
                 }
             }
-            pi.SetValue(target, valueToWrite);
+
+            return value;
         }
 
         #region apply/persist events
@@ -535,14 +541,16 @@ namespace Jot.Configuration
                     return new
                     {
                         name = m.Name,
+                        type = propType,
                         getter = (Expression.Lambda(Expression.Convert(newExp.Arguments[i] as MemberExpression, typeof(object)), projection.Parameters[0]).Compile() as Func<T, object>),
+                        // todo: call the Convert method instead of using Expression.Convert which will not work for enums
                         setter = Expression.Lambda(Expression.Block(Expression.Assign(newExp.Arguments[i], Expression.Convert(right, propType)), Expression.Empty()), projection.Parameters[0], right).Compile() as Action<T, object>
                     };
                 });
 
                 foreach (var a in accessors)
                 {
-                    TrackedProperties[a.name] = new TrackedPropertyInfo(x => a.getter((T)x), (x, v) => a.setter((T)x, v));
+                    TrackedProperties[a.name] = new TrackedPropertyInfo(x => a.getter((T)x), (x, v) => a.setter((T)x, Convert(v, a.name, a.type)));
                 }
             }
             else
