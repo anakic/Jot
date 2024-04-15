@@ -158,7 +158,11 @@ protected override void OnLoad(EventArgs e)
 
 #### Avalonia UI
 
-For [Avalonia UI](https://avaloniaui.net/) it is similar to WPF except that the screen information is available from the Window class instead of being static.
+For [Avalonia UI](https://avaloniaui.net/) it is similar to WPF with some diferences:  
+- The screen information is available from the Window class instead of being static.
+- Closing the app while being minimized would open the app next time also minimized if we don't check for that during window load.
+- When the app is minimized it reports a negative position instead of the position it would have if not minimized,
+  so we need to check for negative position values during window load to prevent setting the window out of reach.
 
 ``` C#
 // in the Program.cs
@@ -172,6 +176,7 @@ public MainWindow()
 #if DEBUG
     this.AttachDevTools();
 #endif
+    var initialPosition = this.Position;
     var trackerNamespace = string.Join("_", Screens.All.Select(s => s.WorkingArea.Size.ToString()));
     trackerNamespace += "__" + Environment.ProcessPath?.Replace("/", "_").Replace("\\", "_"); // <-- Add this if you want multiple copies of the same app to have different configurations.
     Program.Tracker.Configure<Window>()
@@ -180,6 +185,15 @@ public MainWindow()
         .PersistOn(nameof(Window.Closing))
         .StopTrackingOn(nameof(Window.Closing));
     Program.Tracker.Track(this);
+
+    if (this.WindowState == WindowState.Minimized)
+    {
+        this.WindowState = WindowState.Normal;
+    }
+    if (this.Position.X < 0 || this.Position.Y < 0)
+    {
+        this.Position = initialPosition;
+    }
 }
 ```
 
