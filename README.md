@@ -172,8 +172,8 @@ public MainWindow()
 #if DEBUG
     this.AttachDevTools();
 #endif
-    var trackerNamespace = string.Join("|", Screens.All.Select(s => s.WorkingArea.Size.ToString()));
-    trackerNamespace += "||" + Environment.ProcessPath?.Replace("/", "|").Replace("\\", "|"); // <-- Add this if you want multiple copies of the same app to have different configurations.
+    var trackerNamespace = string.Join("_", Screens.All.Select(s => s.WorkingArea.Size.ToString()));
+    trackerNamespace += "__" + Environment.ProcessPath?.Replace("/", "_").Replace("\\", "_"); // <-- Add this if you want multiple copies of the same app to have different configurations.
     Program.Tracker.Configure<Window>()
         .Id(w => w.Name, trackerNamespace)
         .Properties(w => new { w.WindowState, w.Position, w.Width, w.Height })
