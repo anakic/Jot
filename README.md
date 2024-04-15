@@ -156,6 +156,33 @@ protected override void OnLoad(EventArgs e)
 }
 ```
 
+#### Avalonia UI
+
+For [Avalonia UI](https://avaloniaui.net/) it is similar to WPF except that the screen information is available from the Window class instead of being static.
+
+``` C#
+// in the Program.cs
+public static Tracker Tracker = new Tracker();
+
+// in the Window constructor
+
+public MainWindow()
+{
+    InitializeComponent();
+#if DEBUG
+    this.AttachDevTools();
+#endif
+    var trackerNamespace = string.Join("|", Screens.All.Select(s => s.WorkingArea.Size.ToString()));
+    var trackerNamespace += Environment.ProcessPath; // <-- Add this if you want multiple copies of the same app to have different configurations.
+    Program.Tracker.Configure<Window>()
+        .Id(w => w.Name, trackerNamespace)
+        .Properties(w => new { w.WindowState, w.Position, w.Width, w.Height })
+        .PersistOn(nameof(Window.Closing))
+        .StopTrackingOn(nameof(Window.Closing));
+    Program.Tracker.Track(this);
+}
+```
+
 ## Which properties to track
 
 There are two methods (and several overloads) for telling Jot which properties of a given type to track. 
