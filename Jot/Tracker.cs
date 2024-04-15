@@ -163,10 +163,10 @@ namespace Jot
         public TrackingConfiguration Configure(Type t)
         {
             TrackingConfiguration configuration;
-            if (_typeConfigurations.ContainsKey(t))
+            if (_typeConfigurations.TryGetValue(t, out var typeConfiguration))
             {
                 // if a config for this exact type exists return it
-                configuration = _typeConfigurations[t];
+                configuration = typeConfiguration;
             }
             else
             {
@@ -185,8 +185,7 @@ namespace Jot
 
         private TrackingConfiguration FindConfiguration(Type type)
         {
-            var config = _typeConfigurations.ContainsKey(type) ? _typeConfigurations[type] : null;
-            if (config != null)
+            if (_typeConfigurations.TryGetValue(type, out var config))
                 return config;
             else
             {
