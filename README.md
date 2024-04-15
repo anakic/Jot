@@ -190,7 +190,7 @@ public MainWindow()
     {
         this.WindowState = WindowState.Normal;
     }
-    if (this.Position.X < 0 || this.Position.Y < 0)
+    if (this.Position.X < -1 || this.Position.Y < -1) // -1 is used by Windows11 when docking windows on the side.
     {
         this.Position = initialPosition;
     }
