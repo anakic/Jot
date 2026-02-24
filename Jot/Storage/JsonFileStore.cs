@@ -162,7 +162,7 @@ namespace Jot.Storage
 		/// </summary>
 		/// <param name="id"></param>
 		/// <param name="values"></param>
-		public void SetData(string id, IDictionary<string, object> values)
+		public virtual void SetData(string id, IDictionary<string, object> values)
         {
             string filePath = GetfilePath(id);
             var list = values.Select(kvp => new StoreItem() { Name = kvp.Key, Value = kvp.Value, Type = kvp.Value?.GetType() });
